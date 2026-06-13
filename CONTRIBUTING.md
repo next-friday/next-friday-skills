@@ -22,19 +22,11 @@ Skill edits (`SKILL.md`) reload live in the session; run `/reload-plugins` for m
 
 ## Releasing
 
-Releases are human-triggered — no bot opens a version PR. When the accumulated changesets are ready to ship:
+You never bump the version by hand. Whenever changesets land on `main`, the `release.yml` workflow (`changesets/action`) opens or updates a **"version packages" PR** automatically — so the pending release is always visible and can't be forgotten.
 
-1. Open a release issue and branch from it (same flow as any change).
-2. Run the release bump locally:
+To cut a release, a maintainer merges that version PR. On merge it bumps `plugins/*/package.json`, syncs the version into `plugin.json`, generates each `CHANGELOG.md`, and `tag.yml` creates the matching `v<version>` git tag and GitHub Release. **Merging the version PR is the release** — a deliberate human action, so you stay in control of timing.
 
-   ```sh
-   pnpm release
-   ```
-
-   This applies the pending changesets: bumps `plugins/*/package.json`, generates each `CHANGELOG.md`, and syncs the version into `plugin.json`.
-
-3. Commit the result, open a PR, let CI pass, and merge it. **Merging the version bump to `main` is the release.**
-4. On merge, the `tag.yml` workflow detects the version change and creates the matching `v<version>` git tag and GitHub Release automatically.
+You can also run `pnpm release` locally for the same bump when you prefer to drive it by hand; the workflow and the script share the one command.
 
 There is no npm publish — the plugin is distributed through the Claude marketplace, and the tagged commit is the artifact.
 
