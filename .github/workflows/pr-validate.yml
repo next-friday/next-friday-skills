@@ -40,7 +40,13 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
-        run: bash .github/scripts/check-pr-title-references.sh
+          HEAD: ${{ github.head_ref }}
+        run: |
+          if [[ "$HEAD" == changeset-release/* ]]; then
+            echo "Automated release branch; reference check not applicable"
+            exit 0
+          fi
+          bash .github/scripts/check-pr-title-references.sh
 
   issue-exists:
     name: Branch points at a real open issue
@@ -57,6 +63,10 @@ jobs:
           HEAD: ${{ github.head_ref }}
           REPO: ${{ github.repository }}
         run: |
+          if [[ "$HEAD" == changeset-release/* ]]; then
+            echo "Automated release branch; issue-link check not applicable"
+            exit 0
+          fi
           if [[ ! "$HEAD" =~ ^[0-9]+- ]]; then
             echo "::error::Head branch must be created from an issue (gh issue develop <n>); got '$HEAD'." >&2
             exit 1
