@@ -1,0 +1,33 @@
+"area:skills":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "plugins/*/skills/**"
+
+"area:manifests":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".claude-plugin/**"
+          - "plugins/*/.claude-plugin/**"
+          - "plugins/*/package.json"
+
+"area:docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.md"
+          - "plugins/*/README.md"
+
+"area:tooling":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "package.json"
+          - "pnpm-lock.yaml"
+          - "pnpm-workspace.yaml"
+          - ".commitlintrc.json"
+          - ".husky/**"
+          - ".changeset/**"
+          - "scripts/**"
+
+"area:ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"

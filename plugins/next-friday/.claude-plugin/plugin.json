@@ -1,0 +1,21 @@
+{
+  "name": "next-friday",
+  "description": "Issue-driven development workflow: brainstorm a design into a GitHub issue or spec document, then ship it as a PR that passes all gates and CI.",
+  "version": "0.0.0",
+  "author": {
+    "name": "Next Friday"
+  },
+  "homepage": "https://github.com/next-friday/next-friday-skills",
+  "repository": "https://github.com/next-friday/next-friday-skills",
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "github",
+    "issues",
+    "pull-requests",
+    "brainstorming",
+    "design",
+    "tdd",
+    "best-practices"
+  ]
+}

@@ -1,0 +1,48 @@
+name: Design
+description: Record an agreed design before any implementation starts
+title: "type(scope): lowercase description"
+labels: ["enhancement"]
+assignees: ["joetakara", "nextfridaydeveloper"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Title style — Hybrid Convention
+
+        Same vocabulary as commits: `type(scope): lowercase description`.
+        Types: build, chore, ci, docs, feat, fix, perf, refactor, revert, setup, style, test.
+
+        Revisions to this design are appended as comments — never rewrite the body.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What this work achieves and why it matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: design
+    attributes:
+      label: Design
+      description: "The agreed design: decisions, structure, behavior."
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of Scope
+      description: What this work deliberately does not cover.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] Observable, verifiable outcomes that define done
+    validations:
+      required: true

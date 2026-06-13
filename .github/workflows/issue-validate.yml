@@ -1,0 +1,42 @@
+name: Issue Validation
+
+on:
+  issues:
+    types: [opened, edited]
+
+concurrency:
+  group: issue-validate-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  title:
+    name: Validate issue title against Hybrid Convention
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: ${{ github.event.issue.user.type != 'Bot' }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - name: Validate title shape and forbidden tokens
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: bash .github/scripts/check-issue-title.sh "$ISSUE_TITLE"
+      - name: Tag with status:needs-issue-title-fix on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: gh issue edit "$ISSUE" --repo "$REPO" --add-label "status:needs-issue-title-fix"
+      - name: Clear status:needs-issue-title-fix on success
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: gh issue edit "$ISSUE" --repo "$REPO" --remove-label "status:needs-issue-title-fix" 2>/dev/null || true
