@@ -29,11 +29,11 @@ All **artifacts** are English: issue title, body, comments, labels, spec files, 
 
 Every change — including a one-line fix — gets an issue, an approval, and a PR. **What scales is the depth of the design work, never the existence of the gate.**
 
-| Tier         | Examples                                                           | Process                                                                                                                                                                                                 |
-| ------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Trivial**  | typo, dependency bump, config value, copy change                   | Skip the interview and approaches. Write a 2-4 sentence design (what, why, risk), get one approval, record to the issue, hand off — the design approval doubles as the issue review (checklist step 7). |
-| **Standard** | new feature, behavior change, refactor, bugfix with design choices | Full flow below: interview → approaches → design sections → approval.                                                                                                                                   |
-| **Large**    | multiple subsystems, platform work                                 | Decompose into sub-issues first; each sub-issue then goes through Standard.                                                                                                                             |
+| Tier         | Examples                                                           | Process                                                                                                                                                                                                                                                                                                                                              |
+| ------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Trivial**  | typo, dependency bump, config value, copy change                   | Skip the interview and approaches. Write a 2-4 sentence design (what, why, risk), get one approval, record to the issue, hand off — the design approval also serves as the user review (the design approval and the review step are one). If the repo's template still applies, fill only the sections that are relevant and leave the rest minimal. |
+| **Standard** | new feature, behavior change, refactor, bugfix with design choices | Full flow below: interview → approaches → design sections → approval.                                                                                                                                                                                                                                                                                |
+| **Large**    | multiple subsystems, platform work                                 | Decompose into sub-issues first; each sub-issue then goes through Standard.                                                                                                                                                                                                                                                                          |
 
 State your tier call and let the user veto it. Misjudged? **Escalate, never downgrade mid-flight:** the moment a "trivial" change sprouts a real decision (interface, data shape, user-visible trade-off), stop and run the Standard flow.
 
@@ -43,49 +43,15 @@ The "too simple to need a design" excuse stays banned — trivial work still get
 
 You MUST create a task for each of these items and complete them in order (**Trivial tier:** steps 2-4 collapse into the single short design message):
 
+0. **Preflight `gh`** — run `gh auth status`; if `gh` is missing/unauthenticated or the repo has no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
 1. **Explore project context** — check files, docs, recent commits, AND existing issues (`gh issue list`)
 2. **Interview the decision tree** — question relentlessly, one question at a time, dependency-ordered, each with a recommended answer, until shared understanding (see Interviewing below)
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
 5. **Record design** — to a GitHub issue by default; spec document mode when the work calls for it (see Recording the Design)
-6. **Self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
+6. **Self-review** — re-read the recorded design for placeholders, contradictions, ambiguity, scope; for a new or multi-component issue also dispatch the reviewer subagent (see Self-Review)
 7. **User reviews the recorded design** — ask the user to review before proceeding
 8. **Transition to implementation** — write the implementation plan; the **implement** skill ships it
-
-## Process Flow
-
-```dot
-digraph blueprint {
-    "Explore project context\n(+ existing issues)" [shape=box];
-    "Interview: ask next decision\n(one at a time, with recommendation)" [shape=box];
-    "Decision answerable from codebase?" [shape=diamond];
-    "Explore codebase instead" [shape=box];
-    "Decision tree fully resolved?" [shape=diamond];
-    "Propose 2-3 approaches" [shape=box];
-    "Present design sections" [shape=box];
-    "User approves design?" [shape=diamond];
-    "Record design\n(issue body, or spec document mode)" [shape=box];
-    "Self-review\n(fix inline)" [shape=box];
-    "User reviews recorded design?" [shape=diamond];
-    "Write implementation plan" [shape=doublecircle];
-
-    "Explore project context\n(+ existing issues)" -> "Interview: ask next decision\n(one at a time, with recommendation)";
-    "Interview: ask next decision\n(one at a time, with recommendation)" -> "Decision answerable from codebase?";
-    "Decision answerable from codebase?" -> "Explore codebase instead" [label="yes"];
-    "Explore codebase instead" -> "Decision tree fully resolved?";
-    "Decision answerable from codebase?" -> "Decision tree fully resolved?" [label="no, user answers"];
-    "Decision tree fully resolved?" -> "Interview: ask next decision\n(one at a time, with recommendation)" [label="no, next branch"];
-    "Decision tree fully resolved?" -> "Propose 2-3 approaches" [label="yes"];
-    "Propose 2-3 approaches" -> "Present design sections";
-    "Present design sections" -> "User approves design?";
-    "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Record design\n(issue body, or spec document mode)" [label="yes"];
-    "Record design\n(issue body, or spec document mode)" -> "Self-review\n(fix inline)";
-    "Self-review\n(fix inline)" -> "User reviews recorded design?";
-    "User reviews recorded design?" -> "Record design\n(issue body, or spec document mode)" [label="changes requested"];
-    "User reviews recorded design?" -> "Write implementation plan" [label="approved"];
-}
-```
 
 **The terminal state is the implementation plan.** Do NOT jump to writing code, scaffolding, or opening a PR — produce the plan first.
 
@@ -144,16 +110,16 @@ Interview the user relentlessly about every aspect of the design until you reach
 
 ### Preflight
 
-Run `gh auth status` first. If `gh` is missing or unauthenticated, STOP and tell the user — do NOT silently fall back to writing a local file. Ask them to authenticate or confirm an alternative.
+Run `gh auth status` first. If `gh` is missing or unauthenticated, STOP and tell the user — do NOT silently fall back to writing a local file. Ask them to authenticate or confirm an alternative. If the repo has no GitHub remote (GitLab, Bitbucket, plain git), STOP and ask the user how they track work; this skill is GitHub-specific.
 
 ### Title convention — discover, don't invent
 
-Before titling the issue, check whether the org enforces a convention: look for an issue-validate workflow in `.github/workflows/` (often a thin caller into an org-level `<org>/.github` hub repo) and read the rule it enforces. When a conventional-style "hybrid" scheme is in force — common shape: `<type>(<scope>): <lowercase description>` with the repo's commitlint type enum — issue titles MUST follow it. No enforced convention found → mirror the repo's commit convention from `git log`; plain descriptive English title as last resort.
+Before titling the issue, check whether the repo enforces a convention: look for an issue-validate workflow in `.github/workflows/` (some orgs centralize this in a shared `.github` hub repo) and read the rule it enforces. When a conventional-style "hybrid" scheme is in force — common shape: `<type>(<scope>): <lowercase description>` with the repo's commitlint type enum — issue titles MUST follow it. No enforced convention found → mirror the repo's commit convention from `git log`; plain descriptive English title as last resort.
 
 ### Create vs. comment — ASK, don't guess
 
 - **No relevant issue exists** → create one. Confirm before creating ("No existing issue found — create a new one titled `<X>`?").
-- **A relevant issue exists** → comment the design onto it.
+- **A relevant issue exists** → comment the design onto it. The same structure rules apply to the comment body as to a new issue body: when a template/form defines sections, mirror them; and self-review reads the comment, not the original issue body.
 - **Never auto-match an issue by title similarity.** If unsure which issue, ask the user for the number.
 
 ### Use the repo's issue template
@@ -167,11 +133,11 @@ Issue structure comes from the repo's own template, which differs per repo. **Al
 Always write the body to a temp file and pass `--body-file` — design bodies contain backticks, quotes, and `$` that break inline `--body` shell quoting.
 
 ```sh
-# write the filled body (template-based or plain) to a temp file first, then:
 gh issue create --title "<concise English title>" --body-file /tmp/issue-body.md
-# or comment the design onto an existing issue
 gh issue comment <n> --body-file /tmp/design-comment.md
 ```
+
+Write the filled body (template-based or plain) to the temp file first. Add `--label <x>` for any template- or scope-derived labels — but only labels that already exist (see Labels below). Follow the form's `title:` pattern when one is defined.
 
 ### Labels, assignees, reviewers, sub-issues
 
@@ -223,17 +189,6 @@ When the design must live as a committed document (human developer implements, p
 - **Header:** `# Design: <title>`, then `Date:`, then `Status: Draft`, then `Issue: #<n>`. Flip to `Status: Approved` only after the User Review Gate passes, then commit.
 - Cover the sections you presented: goal, decisions, architecture, components, testing, out-of-scope.
 - After committing, **comment a link to the file on the tracking issue**.
-- **Plan goes to a committed file too** — `docs/plans/YYYY-MM-DD-<feature-name>.md` on the same branch, linked from the issue the same way. The PR delivers spec + plan + code together.
+- **Plan goes to a committed file too** — `docs/plans/YYYY-MM-DD-<feature-name>.md` on the same branch. After committing it, **comment a link to the plan file on the tracking issue** (the same way you linked the spec) — the implement skill only reads files linked from the issue, so an unlinked plan is invisible to it. The PR delivers spec + plan + code together.
 
 **Visuals:** when a question is easier shown than told (mockups, layouts, diagrams), offer visuals once for consent, then decide per question. Present them as ASCII/markdown inline, Mermaid embedded in the spec file (GitHub renders it), or HTML/SVG written to a temp file the developer can open.
-
-## Key Principles
-
-- **Interview relentlessly** - resolve every branch of the decision tree, dependency-ordered
-- **One question at a time**, multiple choice preferred, **always with a recommended answer**
-- **Explore, don't ask** - answer from the codebase whenever possible
-- **YAGNI ruthlessly** - Remove unnecessary features from all designs
-- **Explore alternatives** - Always propose 2-3 approaches before settling
-- **Incremental validation** - Present design, get approval before moving on
-- **The issue is the source of truth** - the spec file, when used, is detail linked from it
-- **Be flexible** - Go back and clarify when something doesn't make sense

@@ -46,6 +46,8 @@ gh auth status
 gh issue view <n> --comments
 ```
 
+If `gh` is missing or unauthenticated, STOP and tell the user to install it and run `gh auth login` — do not improvise with raw `git`/`curl`. If the repo has no GitHub remote, STOP and ask how they track work; this skill is GitHub-specific.
+
 Confirm the issue carries an approved design and an implementation plan (in the issue body/comments by default, or in committed spec/plan files linked from the issue when blueprint used spec document mode). If the plan is missing, stop — go back to the blueprint skill.
 
 **Sub-issues:** If the work was split into sub-issues, handle one sub-issue per branch/PR. Don't bundle several sub-issues into one PR.
@@ -58,13 +60,18 @@ Check whether a branch is already linked to the issue — blueprint's spec docum
 gh issue develop <n> --list
 ```
 
-If a linked branch exists, check it out and continue there. Otherwise create one linked to the issue (so GitHub associates them):
+If a linked branch already exists, check it out and continue there (don't recreate). If a branch with the issue's name exists but isn't linked, check it out anyway; if local and remote have diverged, fetch and reconcile before working. Otherwise create one linked to the issue (so GitHub associates them):
 
 ```sh
 gh issue develop <n> --checkout
 ```
 
-If `gh issue develop` is unavailable, create a branch named for the issue (`<n>-<slug>`) and push it. Never work on the default branch.
+Fallbacks, in order:
+
+- **`gh issue develop` subcommand missing** (older `gh`) → branch from the freshly-fetched default branch with a deterministic name: `git fetch origin && git switch -c <n>-<kebab-title> origin/<default-branch>`, where `<kebab-title>` is the issue title lowercased and hyphenated.
+- **No write access to the upstream repo** (you're a contributor on a fork) → `gh issue develop` and the later label/reviewer steps will fail; skip them. Branch on your fork from its up-to-date default, push to your fork, and open the PR cross-repo (see Step 6).
+
+Never work on the default branch.
 
 ### 3. Write the code, task by task
 
@@ -72,6 +79,7 @@ Follow the plan's bite-sized tasks in order. TDD where the repo has test infrast
 
 - **Match the repo's commit convention** — check `git log --oneline -20` before your first commit; if the repo uses Conventional Commits (`feat:`, `fix:`, ...), follow it. Don't invent your own style.
 - **Keep the PR reviewable** — if the diff grows past roughly 400 changed lines, stop and propose splitting into sub-issues (each with its own PR). Oversized reviews get rubber-stamped; small PRs get real review.
+- **Stacked branches after a squash merge** — if this branch was built on another PR's branch and that PR squash-merges, the squash rewrites history: your branch's old base commits are no longer on the default branch, so the PR shows a polluted diff or conflicts. Re-point it onto the merged result: `git fetch origin && git rebase --onto origin/<default-branch> <old-base-sha> <this-branch>`, then force-push with `--force-with-lease`. Do this before continuing, not after opening the PR.
 
 ### 4. Run the FULL gates — before committing the final state
 
@@ -91,10 +99,12 @@ A failing gate blocks the PR. Fix the cause — do not skip, disable, or `--no-v
 Commit any remaining changes from gate fixes, then push:
 
 ```sh
-git add <changed files>
+git add <files this issue touched>
 git commit -m "<clear English message>"
 git push -u origin <branch>
 ```
+
+Stage only the files this issue touched — never blanket `git add -A`/`git add .`, which sweeps in unrelated or untracked files (build artifacts, temp bodies). On a fork, push to your fork's remote, not `origin` upstream.
 
 ### 6. Open the PR from the repo's template
 
@@ -104,23 +114,27 @@ Read `.github/PULL_REQUEST_TEMPLATE.md` and fill every section (or use the no-te
 gh pr create --head <branch> --title "<English title per the repo's title convention>" --body-file /tmp/pr-body.md
 ```
 
-- **Always pass `--head <branch>` explicitly.** Without it, `gh` infers the currently checked-out branch — in a session with more than one active branch, the PR silently attaches to the wrong one.
-- **Title follows the repo's enforced convention** — check for a pr-validate workflow (often a thin caller into an org `<org>/.github` hub) and the repo's commitlint config. Common org rules: conventional `type(scope): subject` validated by commitlint, and **no `#N` in the title** (squash-merge appends `(#PR)`; an issue ref in the title duplicates on the default branch). Issue refs go in the body only.
+- **Always pass `--head <branch>` explicitly.** Without it, `gh` infers the currently checked-out branch — in a session with more than one active branch, the PR silently attaches to the wrong one. **From a fork**, qualify it as `--head <fork-owner>:<branch>` so `gh` opens the PR cross-repo into the upstream.
+- **Title follows the repo's enforced convention** — check for a pr-validate workflow (some orgs centralize this in a shared `.github` hub repo) and the repo's commitlint config. A common rule set: conventional `type(scope): subject` validated by commitlint, and **no `#N` in the title** (squash-merge appends `(#PR)`; an issue ref in the title duplicates on the default branch). Issue refs go in the body only.
 - Body MUST include `Closes #<n>` so merging closes the issue.
-- Labels: only apply ones that already exist (check `gh label list`). Reviewers: determine from CODEOWNERS or ask the user — never guess.
+- Labels: only apply ones that already exist (check `gh label list`). Reviewers: determine from CODEOWNERS or ask the user — never guess. **On a fork you lack write access**, so skip the label/reviewer steps; the maintainer applies them.
 - **Complete and tick every checklist item** in the PR (and any remaining issue-template checklist). Each ticked box must reflect work actually done.
 
 ### 7. Verify CI on the PR
 
 Local gates passing is necessary, not sufficient — the repo's CI and branch protection decide whether the PR can merge.
 
+First see whether the PR has any checks at all, then watch only if it does:
+
 ```sh
-gh pr checks --watch
+gh pr checks <pr-number> || echo "no checks reported"
+# only when checks exist:
+gh pr checks <pr-number> --watch
 ```
 
+- **No checks exist** → `gh pr checks --watch` exits non-zero with `no checks reported` when a PR has zero check runs. That is NOT a CI failure — do NOT loop trying to "fix" it. Report "no CI configured" (and, for a team-owned repo, suggest adding it) and stop.
 - **All checks green** → report the PR URL + CI status to the user. Done.
 - **A check fails** → treat it exactly like a failing local gate: fix the cause, push, re-watch. Never hand the PR over for review with red CI.
-- **No checks configured** → say so explicitly in your report; for a team-owned repo, suggest adding CI.
 
 ## Red Flags — STOP
 

@@ -1,10 +1,10 @@
-# Spec Issue Reviewer Prompt Template
+# Design Issue Reviewer Prompt Template
 
-Use this template when dispatching a reviewer subagent to check a recorded spec issue.
+Use this template when dispatching a reviewer subagent to check a recorded design. It applies to both recording modes — the design in the GitHub issue body (the default) and the committed spec document (spec document mode).
 
-**Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
+**Purpose:** Verify the recorded design is complete, consistent, and ready for implementation planning.
 
-**Dispatch after:** The design is recorded as a GitHub issue (issue body for a new issue, or the spec comment on an existing issue).
+**Dispatch after:** The design is recorded — a new issue body, a comment on an existing issue, or a committed spec file linked from the issue.
 
 ```text
 Task tool (general-purpose):
