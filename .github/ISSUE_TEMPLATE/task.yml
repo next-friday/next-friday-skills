@@ -1,0 +1,29 @@
+name: Task
+description: Chore, docs, or maintenance work that needs tracking
+title: "chore(<scope>): <lowercase description>"
+labels: ["task"]
+assignees: ["joetakara", "nextfridaydeveloper"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Title style — Hybrid Convention
+
+        `chore(<scope>): <lowercase description>` — or `docs`, `ci`, `build` when those fit better.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs doing and why.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] Observable, verifiable outcomes that define done
+    validations:
+      required: true

@@ -1,0 +1,50 @@
+name: Feature Request
+description: New capability or enhancement for the skills or the plugin
+title: "feat(<scope>): <verb-first outcome>"
+labels: ["enhancement"]
+assignees: ["joetakara", "nextfridaydeveloper"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Title style — Hybrid Convention
+
+        Use the conventional-commit shape: `feat(<scope>): <verb-first outcome>`.
+
+        Examples:
+
+        - `feat(blueprint): support linear as the tracking backend`
+        - `feat(implement): discover gates from a makefile`
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What becomes possible once this ships, in one or two sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: The problem or friction today. What happens without this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Behavior
+      description: How it should work. Sketches and examples welcome; design details are settled in the issue thread before implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] Observable, verifiable outcomes that define done
+    validations:
+      required: true

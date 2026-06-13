@@ -1,0 +1,122 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: pr-validate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    name: Validate pull request title
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: ${{ github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: ./.github/common-actions/bootstrap
+      - name: Validate PR title format
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: echo "$PR_TITLE" | pnpm exec commitlint
+
+  title-references:
+    name: Validate title references closed issues
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: ${{ github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - name: Title carries no issue ref and body closes at least one
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: bash .github/scripts/check-pr-title-references.sh
+
+  issue-exists:
+    name: Branch points at a real open issue
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: ${{ github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - name: Head branch leads with an open issue number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD: ${{ github.head_ref }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ ! "$HEAD" =~ ^[0-9]+- ]]; then
+            echo "::error::Head branch must be created from an issue (gh issue develop <n>); got '$HEAD'." >&2
+            exit 1
+          fi
+          n="${HEAD%%-*}"
+          state=$(gh issue view "$n" --repo "$REPO" --json state --jq .state)
+          if [ "$state" != "OPEN" ]; then
+            echo "::error::Issue #$n referenced by branch '$HEAD' is not open (state: $state)." >&2
+            exit 1
+          fi
+          echo "Branch is linked to open issue #$n"
+
+  changeset:
+    name: Changeset present for behavior changes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: ${{ github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Behavior-changing types require a changeset
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          type="${PR_TITLE%%(*}"
+          case "$type" in
+            feat|fix|perf|refactor) ;;
+            *) echo "Type '$type' does not require a changeset"; exit 0 ;;
+          esac
+          if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -q '^\.changeset/.*\.md$'; then
+            echo "Changeset found"
+          else
+            echo "::error::PR type '$type' changes behavior — add a changeset (pnpm changeset)." >&2
+            exit 1
+          fi
+
+  title-sync:
+    name: Sync status:needs-pr-title-fix label
+    needs: [title, title-references]
+    if: ${{ always() && github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Add or remove status:needs-pr-title-fix based on title checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          TITLE_RESULT: ${{ needs.title.result }}
+          REFS_RESULT: ${{ needs.title-references.result }}
+        run: |
+          if [ "$TITLE_RESULT" = "success" ] && [ "$REFS_RESULT" = "success" ]; then
+            gh pr edit "$PR" --repo "$REPO" --remove-label "status:needs-pr-title-fix" 2>/dev/null || true
+          else
+            gh pr edit "$PR" --repo "$REPO" --add-label "status:needs-pr-title-fix"
+          fi

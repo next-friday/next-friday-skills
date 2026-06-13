@@ -1,0 +1,27 @@
+{
+  "name": "@next-friday/next-friday-skills",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "prepare": "husky",
+    "version": "changeset version && bash scripts/sync-plugin-version.sh",
+    "release": "changeset version && bash scripts/sync-plugin-version.sh",
+    "validate:versions": "bash scripts/sync-plugin-version.sh && git diff --exit-code -- 'plugins/*/.claude-plugin/plugin.json'",
+    "validate:markdown": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
+    "validate:comments": "bash scripts/check-no-comments.sh"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.0",
+    "@commitlint/cli": "^21.0.2",
+    "@commitlint/config-conventional": "^21.0.2",
+    "husky": "^9.1.7",
+    "markdownlint-cli2": "^0.18.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "js-yaml@>=4.0.0 <4.1.1": ">=4.1.1",
+      "markdown-it@>=13.0.0 <14.1.1": ">=14.1.1"
+    }
+  }
+}

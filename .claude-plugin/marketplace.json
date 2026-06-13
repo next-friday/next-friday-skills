@@ -1,0 +1,15 @@
+{
+  "name": "skills",
+  "description": "Agent skills by Next Friday: ship every change through GitHub - issue, branch, gates, pull request, green CI.",
+  "owner": {
+    "name": "Next Friday",
+    "url": "https://github.com/next-friday"
+  },
+  "plugins": [
+    {
+      "name": "next-friday",
+      "source": "./plugins/next-friday",
+      "description": "Issue-driven development workflow: blueprint a design into a GitHub issue or spec, then implement it as a PR with green CI."
+    }
+  ]
+}

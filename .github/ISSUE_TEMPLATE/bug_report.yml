@@ -1,0 +1,90 @@
+name: Bug Report
+description: A skill behaves incorrectly or the plugin fails to load
+title: "fix(<scope>): <one-line symptom>"
+labels: ["bug"]
+assignees: ["joetakara", "nextfridaydeveloper"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Title style — Hybrid Convention
+
+        Bug issues use the `fix` type and describe the observable symptom in one line: `fix(<scope>): <symptom>`.
+
+        Examples:
+
+        - `fix(blueprint): interview skips the approval gate on trivial tier`
+        - `fix(implement): pr body missing closes reference`
+
+        Prohibited in any title: `+` as shorthand — use `and` or commas.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence describing the symptom in plain language.
+      placeholder: "The implement skill opens the PR before CI-relevant gates have run."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Affected Skill
+      options:
+        - blueprint
+        - implement
+        - plugin/marketplace (install, manifest, loading)
+        - other
+    validations:
+      required: true
+
+  - type: input
+    id: plugin_version
+    attributes:
+      label: Plugin Version
+      description: From `/plugin` or `plugins/next-friday/.claude-plugin/plugin.json`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: claude_version
+    attributes:
+      label: Claude Code Version
+      description: Output of `claude --version`.
+      placeholder: "2.1.x"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction Steps
+      placeholder: |
+        1. Install the plugin and open a session in a repo with `...`
+        2. Ask `...`
+        3. Observe `...`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: Include the relevant transcript excerpt, error messages, or screenshots.
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Related issues, discussions, or links.

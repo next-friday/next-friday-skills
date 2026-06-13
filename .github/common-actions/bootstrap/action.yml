@@ -1,0 +1,26 @@
+name: Bootstrap
+description: Setup Node.js and install dependencies via pnpm. Run AFTER actions/checkout — local composite actions cannot replace checkout.
+
+inputs:
+  node-version:
+    description: Node major version to install.
+    required: false
+    default: "24"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+      with:
+        run_install: false
+
+    - name: Setup Node.js
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
