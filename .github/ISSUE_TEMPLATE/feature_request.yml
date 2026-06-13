@@ -1,7 +1,7 @@
 name: Feature Request
 description: New capability or enhancement for the skills or the plugin
 title: "feat(<scope>): <verb-first outcome>"
-labels: ["enhancement"]
+labels: ["type:feat"]
 assignees: ["joetakara", "nextfridaydeveloper"]
 body:
   - type: markdown

@@ -1,7 +1,7 @@
 name: Bug Report
 description: A skill behaves incorrectly or the plugin fails to load
 title: "fix(<scope>): <one-line symptom>"
-labels: ["bug"]
+labels: ["type:fix"]
 assignees: ["joetakara", "nextfridaydeveloper"]
 body:
   - type: markdown

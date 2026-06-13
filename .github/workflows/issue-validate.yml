@@ -40,3 +40,11 @@ jobs:
           ISSUE: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
         run: gh issue edit "$ISSUE" --repo "$REPO" --remove-label "status:needs-issue-title-fix" 2>/dev/null || true
+      - name: Apply the type label from the title
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: bash .github/scripts/label-issue-by-type.sh

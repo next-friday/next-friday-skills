@@ -1,7 +1,7 @@
 name: Design
 description: Record an agreed design before any implementation starts
 title: "type(scope): lowercase description"
-labels: ["enhancement"]
+labels: ["type:feat"]
 assignees: ["joetakara", "nextfridaydeveloper"]
 body:
   - type: markdown

@@ -1,7 +1,7 @@
 name: Task
 description: Chore, docs, or maintenance work that needs tracking
 title: "chore(<scope>): <lowercase description>"
-labels: ["task"]
+labels: ["type:chore"]
 assignees: ["joetakara", "nextfridaydeveloper"]
 body:
   - type: markdown
