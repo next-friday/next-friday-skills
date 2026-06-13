@@ -24,11 +24,16 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        id: app-token
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           fetch-depth: 0
           persist-credentials: true
-          token: ${{ secrets.CHANGESETS_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
       - uses: ./.github/common-actions/bootstrap
       - uses: changesets/action@3841a0683d3cfa6dae0f9bb335290003010fe3f0
         id: changesets
@@ -37,11 +42,11 @@ jobs:
           commit: "chore(release): version packages"
           title: "chore(release): version packages"
         env:
-          GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
       - name: Enable auto-merge on the version PR
         if: ${{ steps.changesets.outputs.hasChangesets == 'true' && steps.changesets.outputs.pullRequestNumber != '' }}
         env:
-          GH_TOKEN: ${{ secrets.CHANGESETS_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR: ${{ steps.changesets.outputs.pullRequestNumber }}
           REPO: ${{ github.repository }}
         run: gh pr merge "$PR" --repo "$REPO" --auto --squash
