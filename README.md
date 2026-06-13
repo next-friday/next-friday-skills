@@ -1,6 +1,6 @@
 # Next Friday Skills
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![skills.sh](https://skills.sh/b/next-friday/next-friday-skills)](https://skills.sh/next-friday/next-friday-skills)
 
 Agent skills for shipping through GitHub like a disciplined team — every change flows **issue → branch → gates → pull request → green CI**.
 
@@ -25,6 +25,16 @@ The Next Friday marketplace provides next-friday and future Next Friday plugins 
   ```
 
 Then ask your agent to build something. The skills trigger automatically — no commands to learn, no change to how you talk to your agent.
+
+### Any agent (skills.sh)
+
+To install the skills into Claude Code, Cursor, or any agent the [`skills`](https://skills.sh) CLI supports:
+
+```bash
+npx skills add next-friday/next-friday-skills
+```
+
+This copies `blueprint` and `implement` into your agent's skills directory.
 
 ## Why These Skills Exist
 
