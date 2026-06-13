@@ -48,13 +48,13 @@ These skills fix the failure modes that show up again and again when agents ship
 
 **The Problem.** The oldest failure mode in software is misalignment — and agents amplify it, because they start building immediately and optimistically.
 
-**The Fix** is [`blueprint`](./plugins/next-friday/next-friday-skills/blueprint/SKILL.md): a design interview, one question at a time with a recommended answer, behind a hard gate — no code until you approve a written design. The "too simple to need a design" excuse is banned; trivial changes just get a proportionally tiny design (2-4 sentences, one approval).
+**The Fix** is [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md): a design interview — root context first, then questions batched by dependency level, each with a recommended answer — behind a hard gate, no code until you approve a written design. The "too simple to need a design" excuse is banned; trivial changes just get a proportionally tiny design (2-4 sentences, one approval).
 
 ### #2: The Work Left No Trail
 
 **The Problem.** Agent output that lives in a chat scrollback is gone tomorrow. Your team can't review what they can't see, and next month nobody remembers why the code looks like this.
 
-**The Fix**: [`blueprint`](./plugins/next-friday/next-friday-skills/blueprint/SKILL.md) records every design where your team already works — a GitHub issue, filled from your repo's issue template. Revisions are append-only comments, so the audit trail survives. Plans land on the same issue. The PR closes it. One thread tells the whole story.
+**The Fix**: [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md) records every design where your team already works — a GitHub issue, filled from your repo's issue template. Revisions are append-only comments, so the audit trail survives. Plans land on the same issue. The PR closes it. One thread tells the whole story.
 
 ### #3: The PR Doesn't Actually Merge
 
@@ -64,7 +64,7 @@ These skills fix the failure modes that show up again and again when agents ship
 
 **The Problem.** Local checks passed, but the PR title fails the org's commitlint, no issue is linked, and CI is red. The agent says "done"; the repo says otherwise.
 
-**The Fix** is [`implement`](./plugins/next-friday/next-friday-skills/implement/SKILL.md): branch from the issue, run every gate the repo defines, open the PR from the repo's template with `Closes #N`, then watch CI to green. Red CI means not done — it fixes the cause, never bypasses the gate.
+**The Fix** is [`implement`](./plugins/next-friday/skills/implement/SKILL.md): branch from the issue, run every gate the repo defines, open the PR from the repo's template with `Closes #N`, then watch CI to green. Red CI means not done — it fixes the cause, never bypasses the gate.
 
 ### Summary
 
@@ -82,8 +82,8 @@ Mandatory workflows, not suggestions — the hard gates are part of the skills.
 
 ## Reference
 
-- **[blueprint](./plugins/next-friday/next-friday-skills/blueprint/SKILL.md)** — Design interview → approved design recorded in a GitHub issue → implementation plan. The default flow, with tiered depth (trivial / standard / large).
-- **[implement](./plugins/next-friday/next-friday-skills/implement/SKILL.md)** — Approved issue → linked branch → gated commits → templated PR → CI watched to green.
+- **[blueprint](./plugins/next-friday/skills/blueprint/SKILL.md)** — Design interview → approved design recorded in a GitHub issue → implementation plan. The default flow, with tiered depth (trivial / standard / large).
+- **[implement](./plugins/next-friday/skills/implement/SKILL.md)** — Approved issue → linked branch → gated commits → templated PR → CI watched to green.
 
 ## Requirements
 

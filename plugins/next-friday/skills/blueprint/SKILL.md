@@ -1,6 +1,8 @@
 ---
 name: blueprint
-description: "Use before any creative or implementation work - creating features, building components, changing behavior, or when the user wants to brainstorm, design, or stress-test a plan - turns a rough idea into an approved design recorded as a GitHub issue (or a committed spec document when a human developer implements it or it is part of a project template) plus an implementation plan. Hands off to the implement skill. Triggers on requests like 'design X', 'let's build X', 'brainstorm this', 'plan this feature'."
+description: "Use before any creative or implementation work — designing a feature, building a component, changing behavior, brainstorming, planning, refining requirements, or stress-testing an approach — and before writing any code or scaffolding. Triggers on requests like 'design X', 'let's build X', 'brainstorm this', 'plan this feature', 'how should we structure Y'."
+license: MIT
+compatibility: "Requires git, the GitHub CLI (gh) authenticated, and a GitHub remote"
 argument-hint: "[what to design]"
 ---
 
@@ -21,9 +23,15 @@ blueprint
 Do NOT write any code, scaffold any project, or take any implementation action until you have presented a design, the user has approved it, and the design is recorded (issue or spec document). The terminal action of this skill is the implementation plan. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
+<HARD-GATE>
+Do NOT create or comment on any GitHub artifact until the design has CONVERGED — the user has approved it in chat and no open decisions remain. Recording is the product of an agreed design, not a scratchpad for a moving one. While requirements are still shifting, iterate in chat only. Recording early and then editing/deleting issues as the design changes is the failure this gate prevents.
+</HARD-GATE>
+
 ## Language Rule
 
 All **artifacts** are English: issue title, body, comments, labels, spec files, code, commits, PR. The chat conversation with the user may be in another language, but anything that lands on GitHub or in the repo is English.
+
+**Artifacts are self-contained.** Never reference another repository inside an issue, spec, or PR — not even as inspiration ("modeled on repo X", "same as our other project"). A public or standalone reader has no access to those repos and a referenced repo may later be deleted, leaving a dangling pointer. Conventions discovered by reading other repos are applied silently: state the requirement directly, never its provenance.
 
 ## Scale the Process to the Change
 
@@ -45,7 +53,7 @@ You MUST create a task for each of these items and complete them in order (**Tri
 
 0. **Preflight `gh`** — run `gh auth status`; if `gh` is missing/unauthenticated or the repo has no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
 1. **Explore project context** — check files, docs, recent commits, AND existing issues (`gh issue list`)
-2. **Interview the decision tree** — question relentlessly, one question at a time, dependency-ordered, each with a recommended answer, until shared understanding (see Interviewing below)
+2. **Interview the decision tree** — resolve root context first, then question relentlessly in dependency order (batch tightly-coupled questions, each with a recommended answer) until shared understanding (see Interviewing below)
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
 5. **Record design** — to a GitHub issue by default; spec document mode when the work calls for it (see Recording the Design)
@@ -68,8 +76,9 @@ You MUST create a task for each of these items and complete them in order (**Tri
 
 Interview the user relentlessly about every aspect of the design until you reach a shared understanding. Don't stop at a handful of questions — walk down each branch of the decision tree, resolving every decision that matters before moving on.
 
-- **Dependency order.** Resolve decisions that other decisions depend on first. Don't ask about button colors before you know whether there's a button.
-- **One question per message.** Prefer multiple choice; open-ended is fine.
+- **Root context — resolve FIRST, before any tooling or structure question.** Three questions gate everything else, and getting them late forces redesigns. Resolve all three before asking about test runners, build tools, or file layout — those decisions all depend on the answers: (1) **What is the real end goal / definition of done?** (2) **Does prior art exist** — is this new, or does it replace, migrate, or continue an existing implementation in this repo or elsewhere (if so, explore it)? (3) **What is the repo's nature and who consumes it** — standalone, open-source/public, internal, a library, a template? This determines portability, governance, and how self-contained the work must be.
+- **Dependency order.** After root context, resolve decisions that other decisions depend on first. Don't ask about button colors before you know whether there's a button.
+- **Batch tightly-coupled questions; keep branch-deciding ones separate.** Group questions that share the same dependency level into one message (each with its recommended answer, so the user can rubber-stamp the batch with one "yes"). Keep a question separate when its answer re-routes the rest of the tree. Prefer multiple choice; open-ended is fine.
 - **Always recommend.** For every question, give your recommended answer and why. The user should be able to just say "yes" to your recommendation.
 - **Explore, don't ask.** If a question can be answered by reading the codebase, recent commits, or existing issues, explore it yourself instead of asking. Only ask what the codebase can't tell you (intent, constraints, preferences, trade-offs).
 - **Know when to stop.** The tree is resolved when every branch that affects the design has an answer and no new branches are opening. Then move to approaches.
@@ -114,7 +123,7 @@ Run `gh auth status` first. If `gh` is missing or unauthenticated, STOP and tell
 
 ### Title convention — discover, don't invent
 
-Before titling the issue, check whether the repo enforces a convention: look for an issue-validate workflow in `.github/workflows/` (some orgs centralize this in a shared `.github` hub repo) and read the rule it enforces. When a conventional-style "hybrid" scheme is in force — common shape: `<type>(<scope>): <lowercase description>` with the repo's commitlint type enum — issue titles MUST follow it. No enforced convention found → mirror the repo's commit convention from `git log`; plain descriptive English title as last resort.
+Before titling the issue, check whether the repo enforces a convention: look for an issue-title or PR-title validation workflow in `.github/workflows/`, a commitlint config, or a documented rule in `CONTRIBUTING`. If a conventional-commit-style scheme is enforced (commonly `<type>(<scope>): <lowercase description>` with a defined type enum), issue titles MUST follow it. Otherwise mirror the repo's existing commit convention from `git log`; a plain descriptive English title is the last resort. Discover the convention by reading the repo — never assume one repo's scheme applies to another.
 
 ### Create vs. comment — ASK, don't guess
 
@@ -145,7 +154,7 @@ Write the filled body (template-based or plain) to the temp file first. Add `--l
 - **Invite the relevant people** — assign/mention those who should read what's planned (`--assignee`, or `@mention` in the body). Determine who from CODEOWNERS or by asking the user — never guess.
 - **Discussion lives in comments** — every change request and conversation happens in the issue thread; revisions are appended comments, never body overwrites.
 - **Sub-issues** — when the scope is large, split it into sub-issues (one shippable piece each) and link them from the parent body as a task list (`- [ ] #<n>`). Each sub-issue gets its own branch and PR later.
-- **Amendments vs. restructure** — appended amendment comments are for refining the design _before approval_. Re-estimate the delivery after each amendment: the moment accumulated scope would exceed one reviewable PR (~400 changed lines), STOP amending and restructure — convert the issue into a tracking epic with a sub-issue task list, one shippable piece each, ordered by what unblocks what (e.g., tooling that validates commits lands first). Restructure happens BEFORE implementation starts, never after PRs are open.
+- **Amendments vs. restructure** — appended amendment comments are for refining the design _before approval_. Re-estimate the delivery after each amendment: the moment accumulated scope would exceed one reviewable PR (a useful heuristic is roughly 400 changed lines — adjust to the repo's norms), STOP amending and restructure — convert the issue into a tracking epic with a sub-issue task list, one shippable piece each, ordered by what unblocks what. Restructure happens BEFORE implementation starts, never after PRs are open.
 
 ### Self-Review
 
