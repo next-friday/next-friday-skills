@@ -6,6 +6,7 @@ on:
     paths:
       - ".changeset/**"
       - "plugins/*/package.json"
+  workflow_dispatch:
 
 concurrency:
   group: release
