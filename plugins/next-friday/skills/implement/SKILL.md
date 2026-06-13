@@ -1,6 +1,8 @@
 ---
 name: implement
-description: "Use when a GitHub issue's design and plan are agreed and it's time to implement and ship - turns an approved issue into a branch, working code that passes all gates, and a pull request opened from the repo's template, watched to green CI. Follows the blueprint skill. Triggers on requests like 'implement issue #N', 'start working on the issue', 'open a PR for issue #N'."
+description: "Use when an approved GitHub issue (design and plan already agreed) is ready to build and ship, or on requests like 'implement issue #N', 'start working on the issue', 'open a PR for issue #N', branch from an issue, get the gates or CI green, or open a pull request from the repo template. The execution half that follows the blueprint skill."
+license: MIT
+compatibility: "Requires git, the GitHub CLI (gh) authenticated, and a GitHub remote"
 argument-hint: "[issue-number]"
 ---
 
@@ -80,10 +82,11 @@ Follow the plan's bite-sized tasks in order. TDD where the repo has test infrast
 - **Match the repo's commit convention** — check `git log --oneline -20` before your first commit; if the repo uses Conventional Commits (`feat:`, `fix:`, ...), follow it. Don't invent your own style.
 - **Keep the PR reviewable** — if the diff grows past roughly 400 changed lines, stop and propose splitting into sub-issues (each with its own PR). Oversized reviews get rubber-stamped; small PRs get real review.
 - **Stacked branches after a squash merge** — if this branch was built on another PR's branch and that PR squash-merges, the squash rewrites history: your branch's old base commits are no longer on the default branch, so the PR shows a polluted diff or conflicts. Re-point it onto the merged result: `git fetch origin && git rebase --onto origin/<default-branch> <old-base-sha> <this-branch>`, then force-push with `--force-with-lease`. Do this before continuing, not after opening the PR.
+- **A planned change may be protected** — a `Write`/`Edit` is denied by a hook, the path is owner-owned (CODEOWNERS / a protected config), or policy forbids touching it. Treat the protection as authoritative: do NOT retry the write, escalate permissions, or route around the guard. Leave the file untouched, implement everything else, and record the deferral explicitly in the PR body ("Deferred: `<path>` is protected — needs owner action") and to the user. A protected file is a deferral, not a blocker to defeat.
 
 ### 4. Run the FULL gates — before committing the final state
 
-Discover the repo's gates (don't assume); typically from `package.json` scripts / `turbo.json` / CI config. Run all that apply and make them pass:
+Discover the repo's gates from where the changed code lives, not just the repo root (don't assume). In a monorepo the lint/type/test/build scripts often live in the sub-package that owns the files this issue touched, or in a workspace runner (`turbo.json`, `nx.json`, `pnpm-workspace.yaml`) — not the root `package.json`. Identify the owning package and run its gates through the repo's task runner (e.g. `turbo run lint --filter=<pkg>`, `pnpm --filter <pkg> test`, or the package's local scripts). A root-level script may be absent, run nothing for that package, or falsely pass — confirm the gate actually exercised your changes before trusting a green result. Run all gates that apply and make them pass:
 
 - Lint
 - Type-check
@@ -106,6 +109,8 @@ git push -u origin <branch>
 
 Stage only the files this issue touched — never blanket `git add -A`/`git add .`, which sweeps in unrelated or untracked files (build artifacts, temp bodies). On a fork, push to your fork's remote, not `origin` upstream.
 
+**If the push is blocked** by a guard hook, branch protection, or a server-side rule: STOP. Do not retry, do not `--force`, do not `--no-verify`, do not reroute to another remote or rewrite the command to evade the block. The block is the user's policy, not an obstacle to engineer around. Report exactly what was refused and the command, leave the commits intact locally, and hand off to the user to complete the push (or grant it) themselves. A blocked push is an expected stop, not a failure.
+
 ### 6. Open the PR from the repo's template
 
 Read `.github/PULL_REQUEST_TEMPLATE.md` and fill every section (or use the no-template fallback sections above). Write the body to a temp file — multi-line bodies break inline `--body` quoting:
@@ -115,7 +120,8 @@ gh pr create --head <branch> --title "<English title per the repo's title conven
 ```
 
 - **Always pass `--head <branch>` explicitly.** Without it, `gh` infers the currently checked-out branch — in a session with more than one active branch, the PR silently attaches to the wrong one. **From a fork**, qualify it as `--head <fork-owner>:<branch>` so `gh` opens the PR cross-repo into the upstream.
-- **Title follows the repo's enforced convention** — check for a pr-validate workflow (some orgs centralize this in a shared `.github` hub repo) and the repo's commitlint config. A common rule set: conventional `type(scope): subject` validated by commitlint, and **no `#N` in the title** (squash-merge appends `(#PR)`; an issue ref in the title duplicates on the default branch). Issue refs go in the body only.
+- **Title follows the repo's enforced convention** — check for a pr-title validation workflow and the repo's commitlint config; discover the rule by reading the repo, never assume another repo's scheme. A common rule set: conventional `type(scope): subject` validated by commitlint, and **no `#N` in the title** (squash-merge appends `(#PR)`; an issue ref in the title duplicates on the default branch). Issue refs go in the body only.
+- **If PR creation is blocked** by a hook or policy: STOP, exactly as with a blocked push — do not force or reroute. Report what was refused and hand off to the user to open the PR.
 - Body MUST include `Closes #<n>` so merging closes the issue.
 - Labels: only apply ones that already exist (check `gh label list`). Reviewers: determine from CODEOWNERS or ask the user — never guess. **On a fork you lack write access**, so skip the label/reviewer steps; the maintainer applies them.
 - **Complete and tick every checklist item** in the PR (and any remaining issue-template checklist). Each ticked box must reflect work actually done.
@@ -145,6 +151,8 @@ gh pr checks <pr-number> --watch
 - About to bundle multiple sub-issues into one PR → STOP. One sub-issue per PR.
 - PR body has no `Closes #<n>` → STOP. Link the issue.
 - About to report "done" while CI is red or still pending → STOP. Watch `gh pr checks` to green first.
+- About to retry, `--force`, `--no-verify`, or reroute a push/PR that a hook or policy blocked → STOP. Hand off to the user.
+- About to retry a write the environment denied (protected/owner-owned file) → STOP. Defer it and document in the PR body.
 
 ## Rationalizations
 
@@ -155,3 +163,9 @@ gh pr checks <pr-number> --watch
 | "I'll tick the checklist to save time"          | Ticking undone work is lying to the reviewer. Do it, then tick.                                   |
 | "`--no-verify` is faster"                       | Bypassing hooks ships the bug the gate exists to catch.                                           |
 | "I'll commit straight to main, it's small"      | Every change ships via a branch and PR that closes the issue.                                     |
+| "The guard hook is just being annoying"         | A guard hook (blocked push, protected file) is the user's policy. Stop and hand off; never evade. |
+| "I'll widen permissions so it stops prompting"  | This skill never weakens permissions or bypasses guards. Friction is the user's choice to change. |
+
+## Running with fewer prompts (opt-in, user's choice)
+
+If you want fewer approval prompts for an end-to-end run, that is the user's decision to make in their own Claude Code settings — for example pre-approving specific, scoped read-only commands (`gh pr checks`, `git status`) or enabling an OS sandbox — **before** starting. This skill never weakens permissions for you, never bypasses a guard hook, and never suggests `--no-verify`, `--force`, or `--dangerously-*` flags to reduce friction. If a step is blocked it stops and hands off (Steps 5 and 6) rather than seeking a way around the prompt. Lowering prompt friction must never lower a security boundary.
