@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 5
     if: ${{ github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
       - uses: ./.github/common-actions/bootstrap
@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 5
     if: ${{ github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
       - name: Title carries no issue ref and body closes at least one
@@ -75,7 +75,7 @@ jobs:
     timeout-minutes: 5
     if: ${{ github.event.pull_request.draft == false && github.event.pull_request.user.type != 'Bot' }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           persist-credentials: false
           fetch-depth: 0
