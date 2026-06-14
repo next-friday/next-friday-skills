@@ -35,7 +35,7 @@ jobs:
           persist-credentials: true
           token: ${{ steps.app-token.outputs.token }}
       - uses: ./.github/common-actions/bootstrap
-      - uses: changesets/action@3841a0683d3cfa6dae0f9bb335290003010fe3f0
+      - uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d
         id: changesets
         with:
           version: pnpm release
