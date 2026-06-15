@@ -1,10 +1,10 @@
 # Design Issue Reviewer Prompt Template
 
-Use this template when dispatching a reviewer subagent to check a recorded design. It applies to both recording modes — the design in the GitHub issue body (the default) and the committed spec document (spec document mode).
+Use this template when dispatching a reviewer subagent to check a recorded design. It applies to the design recorded in the GitHub issue body.
 
 **Purpose:** Verify the recorded design is complete, consistent, and ready for implementation planning.
 
-**Dispatch after:** The design is recorded — a new issue body, a comment on an existing issue, or a committed spec file linked from the issue.
+**Dispatch after:** The design is recorded in the issue body.
 
 ```text
 Task tool (general-purpose):
@@ -49,4 +49,4 @@ Task tool (general-purpose):
 
 **Reviewer returns:** Status, Issues (if any), Recommendations
 
-**Acting on the result:** Fixes are recorded by appending a revision comment to the issue — never by overwriting the issue body.
+**Acting on the result:** Fixes are recorded by updating the issue body so it stays the complete current design.

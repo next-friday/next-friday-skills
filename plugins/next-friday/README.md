@@ -8,7 +8,7 @@ blueprint ──→ approved issue + plan ──→ implement ──→ PR, gree
 
 | Skill       | When                                                                                                                                        |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `blueprint` | Design interview → approved design recorded in a GitHub issue (or a committed spec document when the work needs one) → implementation plan. |
+| `blueprint` | Design interview → approved design recorded in the GitHub issue body (design + implementation plan).                                        |
 | `implement` | The issue is approved — branch from it, code task by task, pass all gates, open PR, watch CI to green.                                      |
 
 The process scales to the change: trivial work (typo, dependency bump) takes a 2-4 sentence design and one approval; it never skips the issue, the approval, or the PR.

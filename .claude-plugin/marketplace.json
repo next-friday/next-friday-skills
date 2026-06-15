@@ -9,7 +9,7 @@
     {
       "name": "next-friday",
       "source": "./plugins/next-friday",
-      "description": "Issue-driven development workflow: blueprint a design into a GitHub issue or spec, then implement it as a PR with green CI."
+      "description": "Issue-driven development workflow: blueprint a design into a GitHub issue, then implement it as a PR with green CI."
     }
   ]
 }

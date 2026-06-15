@@ -50,13 +50,13 @@ gh issue view <n> --comments
 
 If `gh` is missing or unauthenticated, STOP and tell the user to install it and run `gh auth login` — do not improvise with raw `git`/`curl`. If the repo has no GitHub remote, STOP and ask how they track work; this skill is GitHub-specific.
 
-Confirm the issue carries an approved design and an implementation plan (in the issue body/comments by default, or in committed spec/plan files linked from the issue when blueprint used spec document mode). If the plan is missing, stop — go back to the blueprint skill.
+Confirm the issue carries an approved design and an implementation plan in the issue body. If the plan is missing, stop — go back to the blueprint skill.
 
 **Sub-issues:** If the work was split into sub-issues, handle one sub-issue per branch/PR. Don't bundle several sub-issues into one PR.
 
 ### 2. Branch from the issue
 
-Check whether a branch is already linked to the issue — blueprint's spec document mode creates one when committing the spec file:
+Check whether a branch is already linked to the issue:
 
 ```sh
 gh issue develop <n> --list
