@@ -1,5 +1,11 @@
 # @next-friday/next-friday
 
+## 0.3.0
+
+### Minor Changes
+
+- fba9ec8: blueprint now treats the GitHub issue body as the single source of truth: the design and the implementation plan live in the body and are rewritten as the design evolves, instead of accreting across append-only comments. The committed-file "Spec Document Mode" is removed, and implement reads the design and plan from the issue body.
+
 ## 0.2.0
 
 ### Minor Changes
