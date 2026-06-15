@@ -1,5 +1,12 @@
 # @next-friday/next-friday
 
+## 0.4.0
+
+### Minor Changes
+
+- d19bd5a: implement now carries the execution rigor it described only loosely: a test-first rule with the common excuses rebutted, a verification gate (no completion claim without fresh command evidence), a root-cause debugging method for failing gates with a stop-after-three-fixes rule, a self-review of the diff against the plan before the PR, a clean-baseline check on the fresh branch, and a disciplined stance for responding to PR review feedback.
+- e8a4f1c: blueprint now stages the converged design to a temp Markdown file and waits for the user to approve that draft (which they can forward to a human reviewer) before creating the issue. The post-record gate becomes a confirmation rather than a second review, and the recording flow now updates an existing issue's body instead of commenting the design onto it.
+
 ## 0.3.0
 
 ### Minor Changes
