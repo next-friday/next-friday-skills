@@ -8,19 +8,17 @@ argument-hint: "[what to design]"
 
 # Blueprint
 
-Turn ideas into fully formed designs through relentless collaborative dialogue, then record the approved design where the team works — a **GitHub issue** by default, or a **committed spec document** when the work calls for one. Either way, every piece of work is tracked by an issue and delivered by a pull request that closes it.
+Turn ideas into fully formed designs through relentless collaborative dialogue, then record the approved design in the **GitHub issue** where the team works — the issue body holds the design and the implementation plan. Every piece of work is tracked by an issue and delivered by a pull request that closes it.
 
 ```text
 blueprint
   └→ design interview → approved design
-       ├→ recorded in the GitHub issue body          (default)
-       └→ or committed spec document, linked from the issue
-            └→ implementation plan
-                 └→ implement skill: branch → gates → PR (Closes #issue)
+       └→ recorded in the GitHub issue body (design + plan)
+            └→ implement skill: branch → gates → PR (Closes #issue)
 ```
 
 <HARD-GATE>
-Do NOT write any code, scaffold any project, or take any implementation action until you have presented a design, the user has approved it, and the design is recorded (issue or spec document). The terminal action of this skill is the implementation plan. This applies to EVERY project regardless of perceived simplicity.
+Do NOT write any code, scaffold any project, or take any implementation action until you have presented a design, the user has approved it, and the design is recorded in the issue body. The terminal action of this skill is the implementation plan. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
 <HARD-GATE>
@@ -56,7 +54,7 @@ You MUST create a task for each of these items and complete them in order (**Tri
 2. **Interview the decision tree** — resolve root context first, then question relentlessly in dependency order (batch tightly-coupled questions, each with a recommended answer) until shared understanding (see Interviewing below)
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
-5. **Record design** — to a GitHub issue by default; spec document mode when the work calls for it (see Recording the Design)
+5. **Record design** — to the GitHub issue body (see Recording the Design)
 6. **Self-review** — re-read the recorded design for placeholders, contradictions, ambiguity, scope; for a new or multi-component issue also dispatch the reviewer subagent (see Self-Review)
 7. **User reviews the recorded design** — ask the user to review before proceeding
 8. **Transition to implementation** — write the implementation plan; the **implement** skill ships it
@@ -96,6 +94,7 @@ Interview the user relentlessly about every aspect of the design until you reach
 - Ask after each section whether it looks right so far
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
+- **Visuals:** when a question is easier shown than told (mockups, layouts, diagrams), offer visuals once for consent, then decide per question — ASCII/markdown inline, Mermaid in the issue body (GitHub renders it), or HTML/SVG in a temp file the user can open
 
 **Design for isolation and clarity:**
 
@@ -113,9 +112,8 @@ Interview the user relentlessly about every aspect of the design until you reach
 
 ### Choose the recording mode
 
-- **Default → the GitHub issue body** (sections below). The issue is where work is discussed, reviewed, and tracked.
-- **Spec document mode** → the design lands as a committed file, linked from a tracking issue. Use it when a human developer will implement from the spec, the work is part of a reusable project template, or the user explicitly asks for a design doc. See Spec Document Mode below.
-- **Never silently write a local file.** A committed spec happens only through spec document mode with the user aware; otherwise the issue is the single source of truth.
+- **The GitHub issue body is the single source of truth** (sections below). The issue is where work is discussed, reviewed, and tracked, and the body holds both the design and the implementation plan.
+- **Never write the design or plan to a committed repo file.** `/tmp` is used only as the buffer for `--body-file`; it is never a persisted artifact and never the handoff to the implement skill.
 
 ### Preflight
 
@@ -152,9 +150,9 @@ Write the filled body (template-based or plain) to the temp file first. Add `--l
 
 - **Label by scope** — apply the labels that match the work's area/size. Only pass `--label` for labels that already exist (check `gh label list`); to add a new label, ask the user first — never create labels unprompted in a shared repo.
 - **Invite the relevant people** — assign/mention those who should read what's planned (`--assignee`, or `@mention` in the body). Determine who from CODEOWNERS or by asking the user — never guess.
-- **Discussion lives in comments** — every change request and conversation happens in the issue thread; revisions are appended comments, never body overwrites.
+- **The body is the living design** — when the design changes before approval, rewrite the body (`gh issue edit <n> --body-file`) to the best current whole-picture version; GitHub preserves the body's edit history. Comments are for discussion, questions, and a decision log — never where the design accretes.
 - **Sub-issues** — when the scope is large, split it into sub-issues (one shippable piece each) and link them from the parent body as a task list (`- [ ] #<n>`). Each sub-issue gets its own branch and PR later.
-- **Amendments vs. restructure** — appended amendment comments are for refining the design _before approval_. Re-estimate the delivery after each amendment: the moment accumulated scope would exceed one reviewable PR (a useful heuristic is roughly 400 changed lines — adjust to the repo's norms), STOP amending and restructure — convert the issue into a tracking epic with a sub-issue task list, one shippable piece each, ordered by what unblocks what. Restructure happens BEFORE implementation starts, never after PRs are open.
+- **Amendments vs. restructure** — body rewrites refine the design _before approval_. Re-estimate the delivery after each revision: the moment accumulated scope would exceed one reviewable PR (a useful heuristic is roughly 400 changed lines — adjust to the repo's norms), STOP amending and restructure — convert the issue into a tracking epic with a sub-issue task list, one shippable piece each, ordered by what unblocks what. Restructure happens BEFORE implementation starts, never after PRs are open.
 
 ### Self-Review
 
@@ -165,7 +163,7 @@ After recording the design, re-read it with fresh eyes:
 3. **Scope check:** Focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two ways? Pick one and make it explicit.
 
-Fix issues by **appending a corrected comment** — do NOT overwrite the issue body with `gh issue edit --body` (overwriting destroys the audit trail). For multi-component designs or any newly created issue, also dispatch the reviewer subagent in `spec-issue-reviewer-prompt.md` for a deeper pass; skip it only for small single-component additions to an existing issue.
+Fix issues by **updating the issue body** (`gh issue edit <n> --body-file`) so the body always holds the complete current design; GitHub preserves the edit history. For multi-component designs or any newly created issue, also dispatch the reviewer subagent in `spec-issue-reviewer-prompt.md` for a deeper pass; skip it only for small single-component additions to an existing issue.
 
 ### User Review Gate
 
@@ -177,27 +175,13 @@ Wait for the user. If they request changes, append a revision comment and re-run
 
 ### Implementation handoff
 
-After the user approves, write the implementation plan and record it as a **comment on the same issue** — never a local plan file (spec document mode is the one exception; see below). Keep design + plan in one thread.
+After the user approves, write the implementation plan and record it in the **issue body**, after the design — never a committed repo file. The body then holds the complete design + plan as one artifact; comments stay a discussion log.
 
 A good plan: bite-sized ordered tasks (a few minutes each), exact files per task, actual code/tests per step (no placeholders), checkbox steps (`- [ ]`), DRY / YAGNI / TDD, frequent commits.
 
 ```sh
-# write the plan to a temp file first (multi-line bodies break inline quoting)
-gh issue comment <n> --body-file /tmp/impl-plan.md
+# rewrite the body to design + plan (multi-line bodies break inline quoting)
+gh issue edit <n> --body-file /tmp/issue-body.md
 ```
 
-Once the plan is on the issue, the execution phase (branch → code → full gates → commit → PR closing the issue) is handled by the **implement** skill.
-
-## Spec Document Mode
-
-When the design must live as a committed document (human developer implements, project template, or explicit user request), everything above still applies — interview, tiers, tracking issue, templates, labels, self-review, user gate. What changes is where the content lands:
-
-- **Tracking issue first** — create or identify it exactly as above; the issue holds the tracking, the file holds the detail, and the eventual PR closes the issue.
-- **Branch before writing** — create the linked work branch with `gh issue develop <n> --checkout` (never commit to the default branch; the link lets the implement skill find the branch later) and commit the spec there.
-- **Path:** follow the repo's existing spec directory convention if one exists; otherwise default to `docs/specs/YYYY-MM-DD-<topic>-design.md`. Explicit user preference overrides both.
-- **Header:** `# Design: <title>`, then `Date:`, then `Status: Draft`, then `Issue: #<n>`. Flip to `Status: Approved` only after the User Review Gate passes, then commit.
-- Cover the sections you presented: goal, decisions, architecture, components, testing, out-of-scope.
-- After committing, **comment a link to the file on the tracking issue**.
-- **Plan goes to a committed file too** — `docs/plans/YYYY-MM-DD-<feature-name>.md` on the same branch. After committing it, **comment a link to the plan file on the tracking issue** (the same way you linked the spec) — the implement skill only reads files linked from the issue, so an unlinked plan is invisible to it. The PR delivers spec + plan + code together.
-
-**Visuals:** when a question is easier shown than told (mockups, layouts, diagrams), offer visuals once for consent, then decide per question. Present them as ASCII/markdown inline, Mermaid embedded in the spec file (GitHub renders it), or HTML/SVG written to a temp file the developer can open.
+Once the plan is in the issue body, the execution phase (branch → code → full gates → commit → PR closing the issue) is handled by the **implement** skill.

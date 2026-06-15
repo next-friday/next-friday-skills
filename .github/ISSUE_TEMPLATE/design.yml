@@ -12,8 +12,6 @@ body:
         Same vocabulary as commits: `type(scope): lowercase description`.
         Types: build, chore, ci, docs, feat, fix, perf, refactor, revert, setup, style, test.
 
-        Revisions to this design are appended as comments — never rewrite the body.
-
   - type: textarea
     id: goal
     attributes:
