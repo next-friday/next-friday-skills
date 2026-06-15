@@ -24,6 +24,10 @@ issue (approved design + plan)
 Do NOT open the PR until every applicable gate passes and every checklist item in the issue/PR template (when one exists) is genuinely done and ticked. A red gate or an unchecked box means the work is not ready.
 </HARD-GATE>
 
+<HARD-GATE>
+NO COMPLETION CLAIM WITHOUT FRESH VERIFICATION EVIDENCE. Before claiming a gate passed, the build is green, or the work is done: run the exact command in this turn, read its full output and exit code, and only then claim it. If you have not run the command in this message, you cannot say it passes. Ban "should pass", "looks right", "seems fine" before the evidence. A regression test is proven only red-green — revert the fix, watch the test fail, restore it.
+</HARD-GATE>
+
 ## Language Rule
 
 All **artifacts** are English: branch name, code, commits, PR title/body, comments, labels. The chat conversation with the user may be in another language, but anything that lands on GitHub or in the repo is English.
@@ -75,9 +79,13 @@ Fallbacks, in order:
 
 Never work on the default branch.
 
+Once on the branch, run the repo's gates once before writing any code to capture a clean baseline — a later red gate is then provably yours, not pre-existing. If the baseline is already red, report it and ask before proceeding.
+
 ### 3. Write the code, task by task
 
-Follow the plan's bite-sized tasks in order. TDD where the repo has test infrastructure: failing test → minimal code → passing test. Commit frequently. Keep changes scoped to this issue.
+Follow the plan's bite-sized tasks in order. Commit frequently. Keep changes scoped to this issue.
+
+**Test-first — where the repo has test infrastructure.** No production code without a failing test first: write the test, run it and watch it fail for the right reason, write the minimal code to pass, run it green, then refactor. Wrote the code before its test? Delete it and start over — don't keep it as "reference" and adapt it. Common excuses and the reality: "too simple to test" (simple code breaks too; the test costs 30 seconds); "I'll test after" (a test that never watched the bug fail proves nothing); "I already tested it by hand" (ad-hoc isn't repeatable — if it isn't a committed test, it didn't happen). If the repo has no test infrastructure, say so in the PR body; never fabricate tests.
 
 - **Match the repo's commit convention** — check `git log --oneline -20` before your first commit; if the repo uses Conventional Commits (`feat:`, `fix:`, ...), follow it. Don't invent your own style.
 - **Keep the PR reviewable** — if the diff grows past roughly 400 changed lines, stop and propose splitting into sub-issues (each with its own PR). Oversized reviews get rubber-stamped; small PRs get real review.
@@ -95,7 +103,21 @@ Discover the repo's gates from where the changed code lives, not just the repo r
 
 A failing gate blocks the PR. Fix the cause — do not skip, disable, or `--no-verify` around a gate to make it pass.
 
+**When a gate (or, later, a CI check) fails — debug by root cause, don't flail:**
+
+- Investigate before touching anything: read the actual error and find the cause. No guess-and-retry.
+- Change ONE thing at a time and re-run. A burst of simultaneous changes hides which one mattered.
+- **After 3 failed fixes, STOP.** Repeated failure — especially surfacing somewhere new each time — means the approach or the plan is wrong, not that fix #4 is around the corner. Step back, question the design, and raise it with the user instead of guessing again.
+
 **If a gate has no corresponding script in the repo** (e.g., no test setup yet), it does not block the PR — state its absence explicitly in the PR body instead of silently skipping it.
+
+### 4.5. Self-review the diff against the plan
+
+Before committing the final state, re-read the issue's plan and check your diff against it:
+
+- **Every plan task is implemented** — point to the change that delivers each one, and list any gaps.
+- **Nothing extra** — the diff adds only what the plan asked for (YAGNI): no drive-by refactors, no speculative code, no files the plan never named.
+- "Close enough" on the plan is not done. If the diff and the plan disagree, fix the diff — or, if the plan itself was wrong, update the issue body and say so.
 
 ### 5. Commit & push
 
@@ -140,7 +162,14 @@ gh pr checks <pr-number> --watch
 
 - **No checks exist** → `gh pr checks --watch` exits non-zero with `no checks reported` when a PR has zero check runs. That is NOT a CI failure — do NOT loop trying to "fix" it. Report "no CI configured" (and, for a team-owned repo, suggest adding it) and stop.
 - **All checks green** → report the PR URL + CI status to the user. Done.
-- **A check fails** → treat it exactly like a failing local gate: fix the cause, push, re-watch. Never hand the PR over for review with red CI.
+- **A check fails** → treat it exactly like a failing local gate: debug by root cause (Step 4), fix, push, re-watch. Never hand the PR over for review with red CI.
+
+**Responding to review feedback on the PR:**
+
+- Evaluate each comment against the codebase before changing anything — verify the claim; don't reflexively comply.
+- A wrong or YAGNI suggestion gets technical pushback, not performative agreement ("you're absolutely right!"); a correct one gets the fix, stated plainly.
+- Fix one comment at a time and re-verify (Step 4) after each.
+- Reply in the inline review thread, not as a top-level PR comment.
 
 ## Red Flags — STOP
 
