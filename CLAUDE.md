@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Claude Code plugin marketplace (`skills`). Plugins live in `plugins/*`; each contains `.claude-plugin/plugin.json` and `skills/<name>/SKILL.md`. The root `.claude-plugin/marketplace.json` lists every plugin. Content is markdown — there is no build step.
+Claude Code plugin marketplace (`skills`). Plugins live in `plugins/*`; each contains `.claude-plugin/plugin.json` and `skills/<name>/SKILL.md`. The root `.claude-plugin/marketplace.json` lists every plugin. Content is markdown — there is no build step and no test runner; the `validate:*` scripts plus `claude plugin validate .` are the only checks.
+
+The sole plugin is `next-friday`, two skills that form one pipeline: **`blueprint`** turns an idea into an agreed GitHub issue whose body holds the design and the implementation plan — the issue is the single source of truth (no committed spec/plan files); **`implement`** takes that approved issue and ships it as a PR with green CI. Keep the set small and composable — sharpen the two before adding a third.
 
 ## Workflow
 
@@ -22,7 +24,13 @@ pnpm release
 pnpm validate:versions
 pnpm validate:markdown
 pnpm validate:comments
+claude plugin validate .
 claude --plugin-dir ./plugins/next-friday
 ```
 
-`pnpm install` sets up devDependencies and the husky git hooks. `pnpm changeset` records a version bump and changelog entry; `pnpm release` applies the pending changesets and syncs each `plugin.json`. The `validate:*` scripts are the CI gates (manifests and skill frontmatter are checked by `claude plugin validate` in the `Validate / plugins` job). `claude --plugin-dir ./plugins/next-friday` loads the plugin in a local session.
+`pnpm install` sets up devDependencies and the husky git hooks. `pnpm changeset` records a version bump and changelog entry; `pnpm release` applies the pending changesets and syncs each `plugin.json`. The four `validate:*` / `claude plugin validate .` commands are the CI gates — run all of them before committing (CONTRIBUTING.md Step 3 lists them as the pre-commit set). `claude --plugin-dir ./plugins/next-friday` loads the plugin in a local session; `SKILL.md` edits reload instantly, manifest edits need `/reload-plugins`.
+
+Two gotchas not obvious from the file tree:
+
+- **Never hand-edit a `plugin.json` version.** `plugins/<name>/package.json` owns the version; `scripts/sync-plugin-version.sh` propagates it. `validate:versions` fails CI if they drift.
+- **No prose code comments in this repo** (`validate:comments` enforces it) — but this is a repo-local rule. Do NOT bake it into the `blueprint`/`implement` skills: they run in third-party repos and must match each target repo's own comment density.
