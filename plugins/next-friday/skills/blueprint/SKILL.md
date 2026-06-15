@@ -94,7 +94,7 @@ Interview the user relentlessly about every aspect of the design until you reach
 - Ask after each section whether it looks right so far
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
-- **Visuals:** when a question is easier shown than told (mockups, layouts, diagrams), offer visuals once for consent, then decide per question — ASCII/markdown inline, Mermaid in the issue body (GitHub renders it), or HTML/SVG in a temp file the user can open
+- **Visuals:** when a question is easier shown than told (mockups, layouts, diagrams), offer visuals once for consent, then decide per question with one test — _would the user understand this better by seeing it than reading it?_ ("which wizard layout?" → yes; "what should this value default to?" → no). Present them as ASCII/markdown inline, Mermaid in the issue body (GitHub renders it), or HTML/SVG in a temp file the user can open
 
 **Design for isolation and clarity:**
 
@@ -185,7 +185,32 @@ If the self-review or reviewer surfaced any change, point it out explicitly and 
 
 After the user approves, write the implementation plan and record it in the **issue body**, after the design — never a committed repo file. The body then holds the complete design + plan as one artifact; comments stay a discussion log.
 
-A good plan: bite-sized ordered tasks (a few minutes each), exact files per task, actual code/tests per step (no placeholders), checkbox steps (`- [ ]`), DRY / YAGNI / TDD, frequent commits.
+Write the plan at **task altitude**: state what each task does, which files it touches, and how it's proven — the exact code and text changes are produced in the PR, not pre-baked into the issue, so the body stays readable.
+
+**Plan header** — open with:
+
+- `**Goal:**` one sentence on what this builds.
+- `**Architecture:**` 2-3 sentences on the approach.
+- `**Tech Stack:**` the key technologies.
+- a line naming the **implement** skill as the executor, with `- [ ]` checkbox steps.
+
+**File map first** — before decomposing, list every file to create or modify with its single responsibility. Files that change together live together; split by responsibility, not by technical layer.
+
+**Ordered tasks** — each task is a checkbox carrying:
+
+- a title and a `**Files:**` block (Create / Modify `path:lines` / Test);
+- the task's intent and an explicit **Done** criterion — what proves it (a passing gate, a green test, an observable behavior);
+- for code work, the behavior to test and the key names/signatures it introduces. The test-first code is written during implementation (the implement skill enforces it), not dumped here.
+
+**No placeholders** — these are plan failures, never write them: "TBD/TODO/implement later"; "add appropriate error handling / handle edge cases" without saying what; "write tests for the above" without naming them; "similar to Task N" (state it directly); references to types or functions no task defines. Every task names concrete files and a checkable Done.
+
+**Plan self-review** — before handing off, re-read the plan:
+
+1. **Spec coverage:** every design requirement maps to a task — list any gap.
+2. **Placeholder scan:** none of the failures above remain.
+3. **Name consistency:** a name introduced in an early task is used identically later (a function called `clearLayers()` in one task and `clearFullLayers()` in another is a bug).
+
+Then, for a new or multi-task plan, dispatch the reviewer subagent in `plan-issue-reviewer-prompt.md` for a Buildability pass; fix what it finds by updating the issue body.
 
 ```sh
 # rewrite the body to design + plan (multi-line bodies break inline quoting)
