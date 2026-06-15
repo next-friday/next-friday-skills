@@ -1,7 +1,7 @@
 {
   "name": "next-friday",
   "description": "Issue-driven development workflow: brainstorm a design into a GitHub issue, then ship it as a PR that passes all gates and CI.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "Next Friday"
   },
