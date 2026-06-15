@@ -54,9 +54,9 @@ You MUST create a task for each of these items and complete them in order (**Tri
 2. **Interview the decision tree** — resolve root context first, then question relentlessly in dependency order (batch tightly-coupled questions, each with a recommended answer) until shared understanding (see Interviewing below)
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
-5. **Record design** — to the GitHub issue body (see Recording the Design)
-6. **Self-review** — re-read the recorded design for placeholders, contradictions, ambiguity, scope; for a new or multi-component issue also dispatch the reviewer subagent (see Self-Review)
-7. **User reviews the recorded design** — ask the user to review before proceeding
+5. **Stage the draft for review** — write the converged design to a temp `.md`, link it for the user (forwardable to a reviewer), and wait for their approval before creating the issue (see Draft Review)
+6. **Record design** — to the GitHub issue body; the approved draft becomes the body (see Recording the Design)
+7. **Self-review** — re-read the recorded design for placeholders, contradictions, ambiguity, scope; for a new or multi-component issue also dispatch the reviewer subagent (see Self-Review), and surface any resulting change to the user
 8. **Transition to implementation** — write the implementation plan; the **implement** skill ships it
 
 **The terminal state is the implementation plan.** Do NOT jump to writing code, scaffolding, or opening a PR — produce the plan first.
@@ -110,6 +110,14 @@ Interview the user relentlessly about every aspect of the design until you reach
 
 ## Recording the Design
 
+### Draft Review (before the issue)
+
+Before creating the issue, stage the converged design for the user to review:
+
+- Write the agreed design to a temp Markdown file (`/tmp/<topic>-design.md`) and give the user the clickable path. They review it there, and may forward the file to a human reviewer before anything is recorded to GitHub.
+- Wait for the user to approve the draft. Only then create the issue — it is recorded already carrying the approved design.
+- The temp file is staging only: it is never committed, and never the handoff to the implement skill. The issue body remains the single source of truth.
+
 ### Choose the recording mode
 
 - **The GitHub issue body is the single source of truth** (sections below). The issue is where work is discussed, reviewed, and tracked, and the body holds both the design and the implementation plan.
@@ -123,10 +131,10 @@ Run `gh auth status` first. If `gh` is missing or unauthenticated, STOP and tell
 
 Before titling the issue, check whether the repo enforces a convention: look for an issue-title or PR-title validation workflow in `.github/workflows/`, a commitlint config, or a documented rule in `CONTRIBUTING`. If a conventional-commit-style scheme is enforced (commonly `<type>(<scope>): <lowercase description>` with a defined type enum), issue titles MUST follow it. Otherwise mirror the repo's existing commit convention from `git log`; a plain descriptive English title is the last resort. Discover the convention by reading the repo — never assume one repo's scheme applies to another.
 
-### Create vs. comment — ASK, don't guess
+### Create vs. update — ASK, don't guess
 
 - **No relevant issue exists** → create one. Confirm before creating ("No existing issue found — create a new one titled `<X>`?").
-- **A relevant issue exists** → comment the design onto it. The same structure rules apply to the comment body as to a new issue body: when a template/form defines sections, mirror them; and self-review reads the comment, not the original issue body.
+- **A relevant issue exists** → update its body with the approved design (`gh issue edit <n> --body-file`). The same structure rules apply: when a template/form defines sections, mirror them; self-review reads the updated body. Comments stay a discussion log, not where the design lives.
 - **Never auto-match an issue by title similarity.** If unsure which issue, ask the user for the number.
 
 ### Use the repo's issue template
@@ -141,7 +149,7 @@ Always write the body to a temp file and pass `--body-file` — design bodies co
 
 ```sh
 gh issue create --title "<concise English title>" --body-file /tmp/issue-body.md
-gh issue comment <n> --body-file /tmp/design-comment.md
+gh issue edit <n> --body-file /tmp/issue-body.md   # update an existing issue's body
 ```
 
 Write the filled body (template-based or plain) to the temp file first. Add `--label <x>` for any template- or scope-derived labels — but only labels that already exist (see Labels below). Follow the form's `title:` pattern when one is defined.
@@ -165,13 +173,13 @@ After recording the design, re-read it with fresh eyes:
 
 Fix issues by **updating the issue body** (`gh issue edit <n> --body-file`) so the body always holds the complete current design; GitHub preserves the edit history. For multi-component designs or any newly created issue, also dispatch the reviewer subagent in `spec-issue-reviewer-prompt.md` for a deeper pass; skip it only for small single-component additions to an existing issue.
 
-### User Review Gate
+### Confirm the recorded design
 
-After the self-review passes, ask the user to review:
+The user already approved the design as a draft (see Draft Review), so the recorded issue should match what they signed off on. After the self-review and reviewer subagent pass:
 
-> "Design recorded at `<issue URL>`. Please review it and let me know if you want changes before we write the implementation plan."
+> "Design recorded at `<issue URL>` — it matches the draft you approved. I'll write the implementation plan next; tell me if anything needs to change first."
 
-Wait for the user. If they request changes, append a revision comment and re-run the self-review. Only proceed once the user approves.
+If the self-review or reviewer surfaced any change, point it out explicitly and wait for the user. Apply requested changes by updating the issue body (`gh issue edit <n> --body-file`), then proceed.
 
 ### Implementation handoff
 
