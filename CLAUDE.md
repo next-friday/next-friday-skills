@@ -33,4 +33,4 @@ claude --plugin-dir ./plugins/next-friday
 Two gotchas not obvious from the file tree:
 
 - **Never hand-edit a `plugin.json` version.** `plugins/<name>/package.json` owns the version; `scripts/sync-plugin-version.sh` propagates it. `validate:versions` fails CI if they drift.
-- **No prose code comments in this repo** (`validate:comments` enforces it) — but this is a repo-local rule. Do NOT bake it into the `blueprint`/`implement` skills: they run in third-party repos and must match each target repo's own comment density.
+- **No prose code comments in this repo** (`validate:comments` enforces it) — but this is a repo-local rule. Do NOT bake it into the `blueprint`/`implement`/`rebut` skills: they run in third-party repos and must match each target repo's own comment density.
