@@ -2,7 +2,7 @@
 name: rebut
 description: "Use on an open pull request that carries AI code-review comments — CodeRabbit, Gemini Code Assist, or a similar bot reviewer — that need handling. Triggers on requests like 'audit the bot comments', 'respond to coderabbit', 'rebut the reviewer', 'go through the AI review', or whenever an open PR shows unresolved bot review threads to triage."
 license: MIT
-compatibility: "Requires git, the GitHub CLI (gh) authenticated with pull-request write access, and a GitHub remote. Posting replies under a separate identity needs a bot or GitHub App token."
+compatibility: "Requires git, the GitHub CLI (gh) authenticated with pull-request write access, and a GitHub remote."
 argument-hint: "[pr-number]"
 ---
 
@@ -10,8 +10,7 @@ argument-hint: "[pr-number]"
 
 Triage the AI code-review comments on a pull request and answer them with rigor. Verify every
 finding against the real code, fix the ones that are real, refute the false positives with
-evidence, and reply in each thread from a separate review-bot identity. The human still clicks
-Resolve.
+evidence, and reply in each thread, marked as automated triage. The human still clicks Resolve.
 
 This is the counterpart to human review, not a copy of it. AI reviewers (CodeRabbit, Gemini Code
 Assist) post **far more** findings, mix real bugs with false positives, and are **repo-blind** —
@@ -47,12 +46,8 @@ for a refute (the gate output, the convention, the line that disproves it). Neve
 gh auth status
 ```
 
-- Identify the PR: the `[pr-number]` argument, else the PR for the current branch
-  (`gh pr view --json number`).
-- **Reply identity.** Read the bot token from `REBUT_BOT_TOKEN`. If it is set, replies post under
-  that bot/App identity. If it is empty, STOP and tell the user that replies would post as the
-  **default account — the PR author — which reads as the author answering their own review**; ask
-  whether to proceed that way or set up the bot token first (see "The review-bot account").
+Identify the PR: the `[pr-number]` argument, else the PR for the current branch
+(`gh pr view --json number`).
 
 ## Step 1 — Gather every finding
 
@@ -93,45 +88,36 @@ Change one thing at a time and re-verify. Do not batch.
 - Commit and push under the **developer's** account (the code is theirs). Capture the SHA for the
   reply.
 
-## Step 5 — Reply in each thread, from the bot
+## Step 5 — Reply in each thread
 
-Reply to the original comment so it threads inline — never a top-level PR comment. Set the bot
-token first, but only when it is non-empty, so an empty value never clobbers your default auth:
+Reply to the original comment so it threads inline — never a top-level PR comment. Prefix every
+reply with the `rebut` marker so it reads as automated triage, not your own casual take:
 
 ```sh
-[ -n "$REBUT_BOT_TOKEN" ] && export GH_TOKEN="$REBUT_BOT_TOKEN"
 gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
-  -f body="Fixed in <sha>: <one line on the change>."
+  -f body="**rebut** (automated triage) — Fixed in <sha>: <one line on the change>."
 ```
 
 For a refute, state the evidence:
 
 ```sh
 gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
-  -f body="Not changing this: <concrete reason — e.g. required by require-meta-default-options; lint passes>."
+  -f body="**rebut** (automated triage) — Not changing this: <concrete reason, e.g. required by require-meta-default-options; lint passes>."
 ```
 
-**Reply-only.** Do NOT resolve the threads — resolving is the human's call. Replying under the bot
-identity keeps the conversation reading as reviewer ↔ responder, not author answering themselves.
+**Reply-only.** Do NOT resolve the threads — resolving is the human's call.
 
 ## Step 6 — Summarize
 
 Hand back a per-finding verdict table (finding → FIX / REFUTE / INTENTIONAL / MINOR → what you did),
 the fix commit SHAs, and a clear "CI is green; these threads are answered and safe to Resolve."
 
-## The review-bot account (prerequisite, out of scope for this skill)
-
-The separate identity is a GitHub App or a bot account with its own token, set up once by the
-maintainer — this skill only consumes it via `REBUT_BOT_TOKEN`. Mirror the repo's release pipeline,
-which already mints a non-default identity with `actions/create-github-app-token` and passes it as
-`GH_TOKEN`. Store the credential in a secret / local env var; never commit it.
-
 ## Red flags — STOP
 
-| Thought                          | Reality                                                                            |
-| -------------------------------- | ---------------------------------------------------------------------------------- |
-| "It's CRITICAL, it must be real" | Severity is a heuristic. Verify it like any other.                                 |
-| "Just apply the suggested diff"  | It may break a repo gate the bot can't see. Verify against the gate first.         |
-| "Dismiss it, the bot is noisy"   | A bare dismissal is not a refute. Cite the evidence.                               |
-| "Reply as me to save time"       | The PR author answering their own review reads as confusion. Use the bot identity. |
-| "Resolve the thread too"         | Resolving is the human's decision; this skill replies only.                        |
+| Thought                          | Reality                                                                     |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| "It's CRITICAL, it must be real" | Severity is a heuristic. Verify it like any other.                          |
+| "Just apply the suggested diff"  | It may break a repo gate the bot can't see. Verify against the gate first.  |
+| "Dismiss it, the bot is noisy"   | A bare dismissal is not a refute. Cite the evidence.                        |
+| "Reply with no marker"           | An unmarked reply reads as your casual take. Prefix it as automated triage. |
+| "Resolve the thread too"         | Resolving is the human's decision; this skill replies only.                 |
