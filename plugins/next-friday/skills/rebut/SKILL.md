@@ -90,19 +90,37 @@ Change one thing at a time and re-verify. Do not batch.
 
 ## Step 5 — Reply in each thread
 
-Reply to the original comment so it threads inline — never a top-level PR comment. Prefix every
-reply with the `rebut` marker so it reads as automated triage, not your own casual take:
+Reply to the original comment so it threads inline — never a top-level PR comment.
 
-```sh
-gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
-  -f body="**rebut** (automated triage) — Fixed in <sha>: <one line on the change>."
+**Open every reply with the same attribution line, on every thread, without exception.** You post
+through the maintainer's `gh` token, so GitHub shows their avatar and a reader assumes they wrote
+it. The attribution line names the agent and disconnects the comment from the human account-holder,
+so automated triage is never mistaken for the maintainer's own review:
+
+> 🤖 Automated triage by Claude Code, posted through the maintainer's account — not a personal review.
+
+When the repo has a bot or machine account, post under that identity instead so the author itself is
+non-personal; the attribution line is the fallback for a personal token.
+
+Write the body to a file and post it with `-F body=@<file>` — the attribution line makes the body
+multi-line, which breaks inline `-f body="..."` quoting. A fix reply:
+
+```text
+> 🤖 Automated triage by Claude Code, posted through the maintainer's account — not a personal review.
+
+**rebut** — Fixed in <sha>: <one line on the change>.
 ```
 
-For a refute, state the evidence:
+A refute states the evidence:
+
+```text
+> 🤖 Automated triage by Claude Code, posted through the maintainer's account — not a personal review.
+
+**rebut** — Not changing this: <concrete reason, e.g. a repo lint rule requires it; the gate passes>.
+```
 
 ```sh
-gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
-  -f body="**rebut** (automated triage) — Not changing this: <concrete reason, e.g. required by require-meta-default-options; lint passes>."
+gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" -F body=@/tmp/reply.md
 ```
 
 **Reply-only.** Do NOT resolve the threads — resolving is the human's call.
@@ -114,10 +132,10 @@ the fix commit SHAs, and a clear "CI is green; these threads are answered and sa
 
 ## Red flags — STOP
 
-| Thought                          | Reality                                                                     |
-| -------------------------------- | --------------------------------------------------------------------------- |
-| "It's CRITICAL, it must be real" | Severity is a heuristic. Verify it like any other.                          |
-| "Just apply the suggested diff"  | It may break a repo gate the bot can't see. Verify against the gate first.  |
-| "Dismiss it, the bot is noisy"   | A bare dismissal is not a refute. Cite the evidence.                        |
-| "Reply with no marker"           | An unmarked reply reads as your casual take. Prefix it as automated triage. |
-| "Resolve the thread too"         | Resolving is the human's decision; this skill replies only.                 |
+| Thought                          | Reality                                                                                         |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| "It's CRITICAL, it must be real" | Severity is a heuristic. Verify it like any other.                                              |
+| "Just apply the suggested diff"  | It may break a repo gate the bot can't see. Verify against the gate first.                      |
+| "Dismiss it, the bot is noisy"   | A bare dismissal is not a refute. Cite the evidence.                                            |
+| "Reply with no marker"           | It reads as the maintainer's own words. Open every reply with the Claude Code attribution line. |
+| "Resolve the thread too"         | Resolving is the human's decision; this skill replies only.                                     |
