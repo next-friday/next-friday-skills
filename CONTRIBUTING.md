@@ -6,13 +6,14 @@ This repo runs on its own workflow: **every change starts as an issue, lands on 
 
 ## Prerequisites
 
-Install these three tools and verify each:
+Install these four tools and verify each:
 
-| Tool                  | Install                                              | Verify           |
-| --------------------- | ---------------------------------------------------- | ---------------- |
-| **Node.js** (≥ 20)    | <https://nodejs.org> or `nvm install 20`             | `node --version` |
-| **pnpm** (9.x)        | `npm install -g pnpm`                                | `pnpm --version` |
-| **GitHub CLI** (`gh`) | `brew install gh` (macOS) · <https://cli.github.com> | `gh --version`   |
+| Tool                  | Install                                                    | Verify           |
+| --------------------- | ---------------------------------------------------------- | ---------------- |
+| **Node.js** (≥ 20)    | <https://nodejs.org> or `nvm install 20`                   | `node --version` |
+| **pnpm** (9.x)        | `npm install -g pnpm`                                      | `pnpm --version` |
+| **GitHub CLI** (`gh`) | `brew install gh` (macOS) · <https://cli.github.com>       | `gh --version`   |
+| **jq**                | `brew install jq` (macOS) · <https://jqlang.github.io/jq/> | `jq --version`   |
 
 Then sign in to GitHub from the terminal (a browser window guides you):
 
