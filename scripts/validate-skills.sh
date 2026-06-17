@@ -13,14 +13,16 @@ for skill in plugins/*/skills/*/SKILL.md; do
   dir=$(dirname "$skill")
   base=$(basename "$dir")
 
-  name=$(sed -n 's/^name:[[:space:]]*//p' "$skill" | head -1 | tr -d '"')
+  name=$(sed -n 's/^[[:space:]]*name:[[:space:]]*//p' "$skill" | head -1 | tr -d '"' | tr -d "'")
   if [ "$name" != "$base" ]; then
     fail "$skill: name '$name' does not match directory '$base'"
   fi
 
-  desc=$(sed -n 's/^description:[[:space:]]*//p' "$skill" | head -1)
+  desc=$(sed -n 's/^[[:space:]]*description:[[:space:]]*//p' "$skill" | head -1)
   desc=${desc#\"}
   desc=${desc%\"}
+  desc=${desc#\'}
+  desc=${desc%\'}
   if [ -z "$desc" ]; then
     fail "$skill: missing description"
   else
@@ -37,7 +39,7 @@ for skill in plugins/*/skills/*/SKILL.md; do
     if [ ! -f "$dir/$ref" ]; then
       fail "$skill: references '$ref' but it is missing from $dir"
     fi
-  done < <(grep -oE '[A-Za-z0-9._-]+-prompt\.md' "$skill" | sort -u)
+  done < <(grep -oE '[A-Za-z0-9._-]+-prompt\.md' "$skill" | sort -u || true)
 
   for sibling in "$dir"/*.md; do
     [ -f "$sibling" ] || continue
