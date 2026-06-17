@@ -6,6 +6,10 @@ Agent skills for shipping through GitHub like a disciplined team — every chang
 
 Coding agents are fast. Fast at building the wrong thing, fast at committing straight to `main`, and fast at declaring "done" while CI burns. These skills fix that without taking over your process: your repo's own templates, title rules, commit style, and gates are **discovered, not assumed** — with graceful fallbacks when they don't exist.
 
+## What this does for you
+
+New to this? In plain terms: you describe what you want in normal language, and your agent handles the disciplined parts. It asks questions to pin down the design, writes that design where your team can see it, builds it in small reviewed steps, opens a pull request, and waits for the automated checks to pass — instead of charging ahead and calling it "done" too early. You stay in control: nothing ships without your approval, and you do not need to learn any new commands.
+
 ## Installation
 
 ### Claude Code
@@ -68,7 +72,7 @@ These skills fix the failure modes that show up again and again when agents ship
 
 ### #4: The AI Reviewer Was Half Right
 
-**The Problem.** CodeRabbit and Gemini Code Assist post a flood of findings — real bugs mixed with false positives that don't know your repo's lint config or conventions. Applying them blindly breaks the build; dismissing them blindly ships the bug.
+**The Problem.** AI code reviewers such as CodeRabbit or Gemini Code Assist post a flood of findings — real bugs mixed with false positives that don't know your repo's lint config or conventions. Applying them blindly breaks the build; dismissing them blindly ships the bug.
 
 **The Fix** is [`rebut`](./plugins/next-friday/skills/rebut/SKILL.md): verify every finding against the real code, fix the ones that reproduce, refute the false positives with evidence, and reply in each thread marked as automated triage — severity labels don't decide, verification does.
 
