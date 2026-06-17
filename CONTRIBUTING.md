@@ -72,7 +72,7 @@ feat: stuff                 ← no scope, vague
 feat(blueprint): Add X.     ← capitalized, trailing period
 ```
 
-Discuss the design in the issue first. If it changes, **add a comment** — never rewrite the issue body (the history matters).
+Discuss the design in the issue first. As it changes, **rewrite the issue body** to the current whole design — GitHub preserves the body's edit history. Comments are for discussion and decisions, not where the design lives.
 
 ### Step 2 — Branch from the issue
 
@@ -92,7 +92,7 @@ Edit the files. To try a skill live in Claude Code while you work:
 claude --plugin-dir ./plugins/next-friday
 ```
 
-Edits to a skill's `SKILL.md` reload instantly in that session. For manifest changes, run `/reload-plugins`. To confirm both skills still load, ask the agent to list them — you should see `blueprint` and `implement`.
+Edits to a skill's `SKILL.md` reload instantly in that session. For manifest changes, run `/reload-plugins`. To confirm the skills still load, ask the agent to list them — you should see `blueprint`, `implement`, and `rebut`.
 
 Before committing, run the same checks CI will run:
 
@@ -195,7 +195,7 @@ While the plugin is `0.x`, it's still stabilizing — even breaking changes bump
 
 - **No prose code comments.** Intent lives in names, commit messages, PR descriptions, and the docs — not in inline comments that rot. This is enforced by `pnpm validate:comments` in CI.
 - Allowed (not prose comments): shebangs (`#!`), YAML/JSON keys, license headers, and machine-meaningful directives (e.g. a lint-disable pragma).
-- This is a repo-local convention. It is intentionally **not** baked into the `blueprint`/`implement` skills, which run in third-party repos and must match each target repo's own comment density.
+- This is a repo-local convention. It is intentionally **not** baked into the `blueprint`/`implement`/`rebut` skills, which run in third-party repos and must match each target repo's own comment density.
 
 ### Skill conventions
 

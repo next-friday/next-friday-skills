@@ -54,7 +54,7 @@ These skills fix the failure modes that show up again and again when agents ship
 
 **The Problem.** Agent output that lives in a chat scrollback is gone tomorrow. Your team can't review what they can't see, and next month nobody remembers why the code looks like this.
 
-**The Fix**: [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md) records every design where your team already works — a GitHub issue, filled from your repo's issue template. Revisions are append-only comments, so the audit trail survives. Plans land on the same issue. The PR closes it. One thread tells the whole story.
+**The Fix**: [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md) records every design where your team already works — a GitHub issue, filled from your repo's issue template. As the design changes, the issue body is rewritten, and GitHub preserves its full edit history. The plan lands on the same issue body. The PR closes it. One thread tells the whole story.
 
 ### #3: The PR Doesn't Actually Merge
 
@@ -78,13 +78,11 @@ These skills condense how disciplined teams actually ship — design review, tra
 
 ## The Basic Workflow
 
-1. **blueprint** — Activates before any code is written. Interviews you through the decision tree, proposes 2-3 approaches, presents the design in reviewable sections, then records it as a GitHub issue and writes the implementation plan as an issue comment.
+1. **blueprint** — Activates before any code is written. Interviews you through the decision tree, proposes 2-3 approaches, presents the design in reviewable sections, then records it as a GitHub issue and writes the implementation plan in the issue body.
 
 2. **implement** — Activates when an issue's design and plan are approved ("implement issue #12"). Branches from the issue, works task by task, runs the full gates, opens a templated PR, and watches CI until it's green.
 
 3. **rebut** — Activates when an open PR has AI code-review comments. Verifies each finding against the real code, fixes the ones that reproduce, refutes false positives with evidence, and replies in-thread marked as automated triage.
-
-When the design must live as a committed spec document instead of an issue body (a human developer implements it, or it's part of a project template), blueprint's **spec document mode** records it as a file linked from the tracking issue — same interview, different artifact.
 
 Mandatory workflows, not suggestions — the hard gates are part of the skills.
 
