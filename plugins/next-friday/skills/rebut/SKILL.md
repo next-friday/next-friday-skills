@@ -58,8 +58,8 @@ gh auth status
 
 ```sh
 OWNER_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
-gh api "repos/$OWNER_REPO/pulls/<pr>/reviews"  --jq '.[] | "[\(.user.login)] \(.state)\n\(.body)\n"'
-gh api "repos/$OWNER_REPO/pulls/<pr>/comments" --jq '.[] | "[\(.user.login)] \(.path):\(.line) id=\(.id)\n\(.body)\n"'
+gh api --paginate "repos/$OWNER_REPO/pulls/<pr>/reviews"  --jq '.[] | "[\(.user.login)] \(.state)\n\(.body)\n"'
+gh api --paginate "repos/$OWNER_REPO/pulls/<pr>/comments" --jq '.[] | "[\(.user.login)] \(.path):\(.line) id=\(.id)\n\(.body)\n"'
 ```
 
 List each finding with its author, `path:line`, comment `id` (needed to reply), and body. Include
@@ -95,19 +95,19 @@ Change one thing at a time and re-verify. Do not batch.
 
 ## Step 5 — Reply in each thread, from the bot
 
-Reply to the original comment so it threads inline — never a top-level PR comment:
+Reply to the original comment so it threads inline — never a top-level PR comment. Set the bot
+token first, but only when it is non-empty, so an empty value never clobbers your default auth:
 
 ```sh
-GH_TOKEN="$REBUT_BOT_TOKEN" gh api \
-  "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
+[ -n "$REBUT_BOT_TOKEN" ] && export GH_TOKEN="$REBUT_BOT_TOKEN"
+gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
   -f body="Fixed in <sha>: <one line on the change>."
 ```
 
 For a refute, state the evidence:
 
 ```sh
-GH_TOKEN="$REBUT_BOT_TOKEN" gh api \
-  "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
+gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" \
   -f body="Not changing this: <concrete reason — e.g. required by require-meta-default-options; lint passes>."
 ```
 
