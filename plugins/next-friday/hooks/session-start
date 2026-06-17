@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+context='This session has the next-friday issue-driven workflow plugin.\n\nBefore building anything, reach for the `blueprint` skill: turn the idea into an approved GitHub issue that holds the design and the implementation plan, and write no code until the design is approved. To ship an approved issue, use `implement`: branch from the issue, pass every gate, open a PR that closes it, and watch CI to green. To triage AI code-review bot comments on a PR, use `rebut`: verify each finding against the real code, then fix it or refute it with evidence. Prefer these skills over ad-hoc building.'
+
+printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$context"
