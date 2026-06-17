@@ -1,5 +1,12 @@
 # @next-friday/next-friday
 
+## 0.7.0
+
+### Minor Changes
+
+- fabe9dd: Add a SessionStart hook that reminds the agent of the issue-driven workflow at the start of each session, so `blueprint`, `implement`, and `rebut` are reached for instead of skipped. The reminder is a short pointer to the skills rather than a copy of their bodies, keeping session context light.
+- c3cec17: `rebut` now opens every in-thread reply with a consistent attribution line that marks the comment as automated triage by the agent, posted through the maintainer's account rather than written by them personally. This keeps automated triage from being mistaken for the maintainer's own review, and points to a bot or machine account as the stronger identity when one is available.
+
 ## 0.6.0
 
 ### Minor Changes
