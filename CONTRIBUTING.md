@@ -72,7 +72,7 @@ feat: stuff                 ← no scope, vague
 feat(blueprint): Add X.     ← capitalized, trailing period
 ```
 
-Discuss the design in the issue first. As it changes, **rewrite the issue body** to the current whole design — GitHub preserves the body's edit history. Comments are for discussion and decisions, not where the design lives.
+Discuss the design in the issue first. As it changes, **rewrite the issue body** to reflect the complete, up-to-date design — GitHub preserves the body's edit history. Comments are for discussion and decisions, not where the design lives.
 
 ### Step 2 — Branch from the issue
 
