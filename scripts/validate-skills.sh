@@ -13,12 +13,12 @@ for skill in plugins/*/skills/*/SKILL.md; do
   dir=$(dirname "$skill")
   base=$(basename "$dir")
 
-  name=$(sed -n 's/^[[:space:]]*name:[[:space:]]*//p' "$skill" | head -1 | tr -d '"' | tr -d "'")
+  name=$(sed -n 's/^[[:space:]]*name:[[:space:]]*//p' "$skill" | head -1 | tr -d '"' | tr -d "'" | sed 's/[[:space:]]*$//')
   if [ "$name" != "$base" ]; then
     fail "$skill: name '$name' does not match directory '$base'"
   fi
 
-  desc=$(sed -n 's/^[[:space:]]*description:[[:space:]]*//p' "$skill" | head -1)
+  desc=$(sed -n 's/^[[:space:]]*description:[[:space:]]*//p' "$skill" | head -1 | sed 's/[[:space:]]*$//')
   case "$desc" in
     ">" | "|" | ">-" | "|-" | ">+" | "|+")
       fail "$skill: description uses a YAML block scalar; use a single-line quoted description"
