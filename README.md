@@ -34,7 +34,7 @@ To install the skills into Claude Code, Cursor, or any agent the [`skills`](http
 npx skills add next-friday/next-friday-skills
 ```
 
-This copies `blueprint` and `implement` into your agent's skills directory.
+This copies `blueprint`, `implement`, and `rebut` into your agent's skills directory.
 
 ## Why These Skills Exist
 
@@ -66,6 +66,12 @@ These skills fix the failure modes that show up again and again when agents ship
 
 **The Fix** is [`implement`](./plugins/next-friday/skills/implement/SKILL.md): branch from the issue, run every gate the repo defines, open the PR from the repo's template with `Closes #N`, then watch CI to green. Red CI means not done — it fixes the cause, never bypasses the gate.
 
+### #4: The AI Reviewer Was Half Right
+
+**The Problem.** CodeRabbit and Gemini Code Assist post a flood of findings — real bugs mixed with false positives that don't know your repo's lint config or conventions. Applying them blindly breaks the build; dismissing them blindly ships the bug.
+
+**The Fix** is [`rebut`](./plugins/next-friday/skills/rebut/SKILL.md): verify every finding against the real code, fix the ones that reproduce, refute the false positives with evidence, and reply in each thread marked as automated triage — severity labels don't decide, verification does.
+
 ### Summary
 
 These skills condense how disciplined teams actually ship — design review, traceable decisions, gated delivery — into habits your agent applies on every change, scaled to the size of the change.
@@ -76,6 +82,8 @@ These skills condense how disciplined teams actually ship — design review, tra
 
 2. **implement** — Activates when an issue's design and plan are approved ("implement issue #12"). Branches from the issue, works task by task, runs the full gates, opens a templated PR, and watches CI until it's green.
 
+3. **rebut** — Activates when an open PR has AI code-review comments. Verifies each finding against the real code, fixes the ones that reproduce, refutes false positives with evidence, and replies in-thread marked as automated triage.
+
 When the design must live as a committed spec document instead of an issue body (a human developer implements it, or it's part of a project template), blueprint's **spec document mode** records it as a file linked from the tracking issue — same interview, different artifact.
 
 Mandatory workflows, not suggestions — the hard gates are part of the skills.
@@ -84,6 +92,7 @@ Mandatory workflows, not suggestions — the hard gates are part of the skills.
 
 - **[blueprint](./plugins/next-friday/skills/blueprint/SKILL.md)** — Design interview → approved design recorded in a GitHub issue → implementation plan. The default flow, with tiered depth (trivial / standard / large).
 - **[implement](./plugins/next-friday/skills/implement/SKILL.md)** — Approved issue → linked branch → gated commits → templated PR → CI watched to green.
+- **[rebut](./plugins/next-friday/skills/rebut/SKILL.md)** — Open PR with AI review comments → verified triage → fixes plus evidence-backed refutals → in-thread replies.
 
 ## Requirements
 
