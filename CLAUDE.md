@@ -24,13 +24,15 @@ pnpm release
 pnpm validate:versions
 pnpm validate:markdown
 pnpm validate:comments
+pnpm validate:skills
 claude plugin validate .
 claude --plugin-dir ./plugins/next-friday
 ```
 
-`pnpm install` sets up devDependencies and the husky git hooks. `pnpm changeset` records a version bump and changelog entry; `pnpm release` applies the pending changesets and syncs each `plugin.json`. The four `validate:*` / `claude plugin validate .` commands are the CI gates — run all of them before committing (CONTRIBUTING.md Step 3 lists them as the pre-commit set). `claude --plugin-dir ./plugins/next-friday` loads the plugin in a local session; `SKILL.md` edits reload instantly, manifest edits need `/reload-plugins`.
+`pnpm install` sets up devDependencies and the husky git hooks. `pnpm changeset` records a version bump and changelog entry; `pnpm release` applies the pending changesets and syncs each `plugin.json`. The four `validate:*` commands plus `claude plugin validate .` are the CI gates — run all of them before committing (CONTRIBUTING.md Step 3 lists them as the pre-commit set). `claude --plugin-dir ./plugins/next-friday` loads the plugin in a local session; `SKILL.md` edits reload instantly, manifest edits need `/reload-plugins`.
 
-Two gotchas not obvious from the file tree:
+Three gotchas not obvious from the file tree:
 
 - **Never hand-edit a `plugin.json` version.** `plugins/<name>/package.json` owns the version; `scripts/sync-plugin-version.sh` propagates it. `validate:versions` fails CI if they drift.
 - **No prose code comments in this repo** (`validate:comments` enforces it) — but this is a repo-local rule. Do NOT bake it into the `blueprint`/`implement`/`rebut` skills: they run in third-party repos and must match each target repo's own comment density.
+- **SessionStart hook.** `plugins/<name>/hooks/hooks.json` wires a `SessionStart` hook that injects a short reminder of the issue-driven workflow so the skills are reached for, not skipped. `validate:skills` checks the referenced hook script exists and is executable.

@@ -9,7 +9,8 @@
     "release": "changeset version && bash scripts/sync-plugin-version.sh",
     "validate:versions": "bash scripts/sync-plugin-version.sh && git diff --exit-code -- 'plugins/*/.claude-plugin/plugin.json'",
     "validate:markdown": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
-    "validate:comments": "bash scripts/check-no-comments.sh"
+    "validate:comments": "bash scripts/check-no-comments.sh",
+    "validate:skills": "bash scripts/validate-skills.sh"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",

@@ -100,6 +100,7 @@ Before committing, run the same checks CI will run:
 pnpm validate:markdown   # markdown is clean
 pnpm validate:comments   # no prose code comments
 pnpm validate:versions   # plugin.json version is in sync
+pnpm validate:skills     # skill name, description, and refs resolve
 claude plugin validate . # manifests and skill frontmatter are valid
 ```
 
@@ -155,7 +156,7 @@ Fill in the PR template's checklist honestly — tick a box only when the work b
 
 ### Step 7 — CI, review, and merge
 
-When the PR opens, CI runs automatically — manifest validation, markdown, comment, and version checks, plus title and issue-link checks. Watch them:
+When the PR opens, CI runs automatically — manifest validation, markdown, comment, version, and skill checks, plus title and issue-link checks. Watch them:
 
 ```sh
 gh pr checks <pr-number> --watch
@@ -203,6 +204,8 @@ While the plugin is `0.x`, it's still stabilizing — even breaking changes bump
 - Skill frontmatter: `name` matches the directory; `description` states triggering conditions only — never the workflow itself.
 - Versions are owned by each plugin's `package.json`; `scripts/sync-plugin-version.sh` propagates them to `plugins/<name>/.claude-plugin/plugin.json`. Never edit a manifest version by hand.
 - We keep the skill set small and composable — fixes and sharpening beat new skills. Lessons from real usage get folded back into the skills in the same change that exposed them.
+- A `SessionStart` hook under `plugins/<name>/hooks/` injects a short reminder of the issue-driven workflow each session, so the skills are reached for instead of skipped. Keep that reminder short — a pointer to the skills, never a copy of their bodies. `pnpm validate:skills` checks every skill's `name` matches its directory, its `description` states triggers only and stays within length, sibling reference files resolve, and each hook script exists and is executable.
+- To check a skill actually triggers, run `bash scripts/drill-skill.sh <name> "<prompt>"` locally — it drives `claude -p` and looks for the skill in the response. It needs the `claude` CLI and is deliberately not part of CI.
 
 ## Troubleshooting
 
