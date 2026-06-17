@@ -29,6 +29,7 @@ permissions:
 jobs:
   triage:
     # Only on pull requests, and skip events the triage identity itself caused (loop guard).
+    # YOUR_TRIAGE_APP[bot] = your GitHub App's name plus the "[bot]" suffix, e.g. "my-triage-app[bot]".
     if: >-
       (github.event.pull_request != null || github.event.issue.pull_request != null) &&
       github.actor != 'YOUR_TRIAGE_APP[bot]'
@@ -58,7 +59,7 @@ jobs:
           # Put the working tree on the PR head so any fix-push targets the PR branch, not the default branch.
           gh pr checkout "$PR"
           # Install the plugin into the CI agent, then invoke rebut headless on this PR.
-          npx skills add next-friday/next-friday-skills
+          npx -y skills add next-friday/next-friday-skills
           claude -p "Use the rebut skill to triage the latest review round on PR #${PR}."
 ```
 

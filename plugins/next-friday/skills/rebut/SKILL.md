@@ -68,7 +68,7 @@ gh api --paginate "repos/$OWNER_REPO/pulls/<pr>/comments" --jq '.[] | "[\(.user.
 ```
 
 List each finding with its author, `path:line`, comment `id` (needed to reply), and body. Include
-the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot — recognizable by a `[bot]` login or `.user.type == "Bot"` from the API — or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
+the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot — recognizable by the `[bot]` login suffix shown in the gathered output — or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
 
 ## Step 2 — Verify each finding (the core of this skill)
 
