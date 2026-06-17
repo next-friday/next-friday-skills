@@ -8,7 +8,12 @@ if [[ -z "$title" ]]; then
   exit 2
 fi
 
-allowed_types='build|chore|ci|docs|feat|fix|perf|refactor|revert|setup|style|test'
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+allowed_types=$(jq -r '.rules["type-enum"][2] | join("|")' "$root/.commitlintrc.json" 2>/dev/null || true)
+if [[ -z "$allowed_types" ]]; then
+  echo "::error::Could not read type-enum from .commitlintrc.json" >&2
+  exit 2
+fi
 pattern="^(${allowed_types})\\([a-z0-9][a-z0-9_/-]*\\): [a-z].{4,119}$"
 
 if ! [[ "$title" =~ $pattern ]]; then
