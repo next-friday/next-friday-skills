@@ -132,10 +132,10 @@ the fix commit SHAs, and a clear "CI is green; these threads are answered and sa
 
 ## Red flags — STOP
 
-| Thought                          | Reality                                                                                         |
-| -------------------------------- | ----------------------------------------------------------------------------------------------- |
-| "It's CRITICAL, it must be real" | Severity is a heuristic. Verify it like any other.                                              |
-| "Just apply the suggested diff"  | It may break a repo gate the bot can't see. Verify against the gate first.                      |
-| "Dismiss it, the bot is noisy"   | A bare dismissal is not a refute. Cite the evidence.                                            |
-| "Reply with no marker"           | It reads as the maintainer's own words. Open every reply with the Claude Code attribution line. |
-| "Resolve the thread too"         | Resolving is the human's decision; this skill replies only.                                     |
+| Thought                          | Reality                                                                                                                      |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| "It's CRITICAL, it must be real" | Severity is a heuristic. Verify it like any other.                                                                           |
+| "Just apply the suggested diff"  | It may break a repo gate the bot can't see. Verify against the gate first.                                                   |
+| "Dismiss it, the bot is noisy"   | A bare dismissal is not a refute. Cite the evidence.                                                                         |
+| "Reply with no marker"           | It reads as the maintainer's own words. Open every reply with the Claude Code attribution line, then the `**rebut**` marker. |
+| "Resolve the thread too"         | Resolving is the human's decision; this skill replies only.                                                                  |
