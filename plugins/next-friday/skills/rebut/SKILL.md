@@ -1,6 +1,6 @@
 ---
 name: rebut
-description: "Use on an open pull request that carries AI code-review comments — CodeRabbit, Gemini Code Assist, or a similar bot reviewer — that need handling. Triggers on requests like 'audit the bot comments', 'respond to coderabbit', 'rebut the reviewer', 'go through the AI review', or whenever an open PR shows unresolved bot review threads to triage."
+description: "Use on an open pull request that carries AI code-review comments — CodeRabbit, Gemini Code Assist, or a similar bot reviewer — that need handling, and right after pushing to a PR where such a reviewer is expected to weigh in. Triggers on requests like 'audit the bot comments', 'respond to coderabbit', 'rebut the reviewer', 'go through the AI review', or whenever an open PR shows unresolved bot review threads to triage."
 license: MIT
 compatibility: "Requires git, the GitHub CLI (gh) authenticated with pull-request write access, and a GitHub remote."
 argument-hint: "[pr-number]"
@@ -85,7 +85,7 @@ Change one thing at a time and re-verify. Do not batch.
 - Minimal change scoped to the finding. For a bug, write the failing test first, watch it fail,
   fix, watch it pass.
 - Run the repo's full gates. A red gate blocks the fix.
-- Commit and push under the **developer's** account (the code is theirs). Capture the SHA for the
+- Commit and push under the **maintainer's** account — the same account that owns the PR and posts the replies. Capture the SHA for the
   reply.
 
 ## Step 5 — Reply in each thread
@@ -94,7 +94,7 @@ Reply to the original comment so it threads inline — never a top-level PR comm
 
 **Open every reply with the same attribution line, on every thread, without exception.** You post
 through the maintainer's `gh` token, so GitHub shows their avatar and a reader assumes they wrote
-it. The attribution line names the agent and disconnects the comment from the human account-holder,
+it. The attribution line names the agent and disconnects the comment from the maintainer,
 so automated triage is never mistaken for the maintainer's own review:
 
 > 🤖 Automated triage by Claude Code, posted through the maintainer's account — not a personal review.
@@ -125,10 +125,19 @@ gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" -F body=@/tm
 
 **Reply-only.** Do NOT resolve the threads — resolving is the human's call.
 
+## Step 5.5 — Re-verify CI, then catch the round your fix-push provoked
+
+If Step 4 pushed any fix commits, that push re-triggers CI and a fresh AI-review round. Before summarizing:
+
+- **Re-verify CI.** Probe first with `gh pr checks <pr> || echo "no checks reported"`; when checks exist, run `gh pr checks <pr> --watch` and confirm green with your own eyes — never assert CI is green without this evidence. If the PR has no checks, `--watch` exits non-zero with `no checks reported`; that is NOT a failure — note "no CI configured" and move on, exactly as the **implement** skill handles it.
+- **Catch the new round.** The fix-push provokes a fresh bot round. Re-run Step 1's gather; if it surfaced new actionable findings, triage them through Steps 2-5, then return to the top of this step. Every push repeats this re-verify and re-gather; the loop ends only when a gather adds nothing new — only acknowledgements, or no comments.
+
+If Step 4 changed nothing (every finding was REFUTE or INTENTIONAL), there is no new push and no new round — skip straight to Step 6.
+
 ## Step 6 — Summarize
 
 Hand back a per-finding verdict table (finding → FIX / REFUTE / INTENTIONAL / MINOR → what you did),
-the fix commit SHAs, and a clear "CI is green; these threads are answered and safe to Resolve."
+the fix commit SHAs, and the actual `gh pr checks` result from Step 5.5 — reported as "CI is green" only when it truly is, or "no CI configured" when the PR has none — followed by a clear "these threads are answered and safe to Resolve."
 
 ## Red flags — STOP
 
