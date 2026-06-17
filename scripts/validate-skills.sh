@@ -13,16 +13,29 @@ for skill in plugins/*/skills/*/SKILL.md; do
   dir=$(dirname "$skill")
   base=$(basename "$dir")
 
-  name=$(sed -n 's/^[[:space:]]*name:[[:space:]]*//p' "$skill" | head -1 | tr -d '"' | tr -d "'")
+  name=$(sed -n 's/^[[:space:]]*name:[[:space:]]*//p' "$skill" | head -1 | tr -d '"' | tr -d "'" | sed 's/[[:space:]]*$//')
   if [ "$name" != "$base" ]; then
     fail "$skill: name '$name' does not match directory '$base'"
   fi
 
-  desc=$(sed -n 's/^[[:space:]]*description:[[:space:]]*//p' "$skill" | head -1)
-  desc=${desc#\"}
-  desc=${desc%\"}
-  desc=${desc#\'}
-  desc=${desc%\'}
+  desc=$(sed -n 's/^[[:space:]]*description:[[:space:]]*//p' "$skill" | head -1 | sed 's/[[:space:]]*$//')
+  case "$desc" in
+    ">" | "|" | ">-" | "|-" | ">+" | "|+")
+      fail "$skill: description uses a YAML block scalar; use a single-line quoted description"
+      continue
+      ;;
+  esac
+  if [ "${#desc}" -ge 2 ]; then
+    first=${desc:0:1}
+    last=${desc: -1}
+    if [ "$first" = '"' ] && [ "$last" = '"' ]; then
+      desc=${desc#\"}
+      desc=${desc%\"}
+    elif [ "$first" = "'" ] && [ "$last" = "'" ]; then
+      desc=${desc#\'}
+      desc=${desc%\'}
+    fi
+  fi
   if [ -z "$desc" ]; then
     fail "$skill: missing description"
   else
@@ -41,11 +54,12 @@ for skill in plugins/*/skills/*/SKILL.md; do
     fi
   done < <(grep -oE '[A-Za-z0-9._-]+-prompt\.md' "$skill" | sort -u || true)
 
+  refs=$(grep -oE '[A-Za-z0-9._-]+\.md' "$skill" | sort -u || true)
   for sibling in "$dir"/*.md; do
     [ -f "$sibling" ] || continue
     sname=$(basename "$sibling")
     [ "$sname" = "SKILL.md" ] && continue
-    grep -qF "$sname" "$skill" || fail "$skill: sibling '$sname' is never referenced, so it is dead weight"
+    printf '%s\n' "$refs" | grep -qxF "$sname" || fail "$skill: sibling '$sname' is never referenced, so it is dead weight"
   done
 done
 
@@ -54,10 +68,13 @@ for manifest in plugins/*/hooks/hooks.json; do
   root=$(dirname "$(dirname "$manifest")")
   while IFS= read -r cmd; do
     [ -n "$cmd" ] || continue
+    if [ "${cmd#*'${CLAUDE_PLUGIN_ROOT}/'}" = "$cmd" ]; then
+      fail "$manifest: hook command references no \${CLAUDE_PLUGIN_ROOT} path, cannot verify: $cmd"
+      continue
+    fi
     rel=${cmd#*CLAUDE_PLUGIN_ROOT\}/}
     rel=${rel%%\"*}
     rel=${rel%% *}
-    [ -n "$rel" ] || continue
     if [ ! -x "$root/$rel" ]; then
       fail "$manifest: hook command '$rel' is missing or not executable under $root"
     fi

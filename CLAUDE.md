@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Claude Code plugin marketplace (`skills`). Plugins live in `plugins/*`; each contains `.claude-plugin/plugin.json` and `skills/<name>/SKILL.md`. The root `.claude-plugin/marketplace.json` lists every plugin. Content is markdown — there is no build step and no test runner; the `validate:*` scripts plus `claude plugin validate .` are the only checks.
 
-The sole plugin is `next-friday`, three skills: **`blueprint`** turns an idea into an agreed GitHub issue whose body holds the design and the implementation plan — the issue is the single source of truth (no committed spec/plan files); **`implement`** takes that approved issue and ships it as a PR with green CI; **`rebut`** triages the AI code-review comments on that PR — verify each finding, then fix it or refute it with evidence. Keep the set small and composable — sharpen what exists before adding more.
+The sole plugin is `next-friday`, three skills: **`blueprint`** turns an idea into an agreed GitHub issue whose body holds the design and the implementation plan — the issue is the single source of truth (no committed spec/plan files); **`implement`** takes that approved issue and ships it as a PR with green CI, then hands off to `rebut`; **`rebut`** triages the AI code-review comments on that PR — verify each finding, then fix it or refute it with evidence. Keep the set small and composable — sharpen what exists before adding more.
 
 ## Workflow
 

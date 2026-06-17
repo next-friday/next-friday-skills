@@ -18,6 +18,7 @@ issue (approved design + plan)
                  └→ commit & push
                       └→ open PR from .github template (Closes #issue)
                            └→ verify CI green (gh pr checks)
+                                └→ on push, AI reviewers re-review → hand off to rebut → triage → loop until none new
 ```
 
 <HARD-GATE>
@@ -83,13 +84,13 @@ Once on the branch, run the repo's gates once before writing any code to capture
 
 ### 3. Write the code, task by task
 
-Follow the plan's bite-sized tasks in order. Commit frequently. Keep changes scoped to this issue.
+Work the plan's tasks in dependency order, committing frequently and keeping changes scoped to this issue. Independent tasks — disjoint files, no shared state, no ordering dependency — may be done in any order; dependent or same-file tasks stay strictly ordered. Do not fan tasks out to parallel subagents on one branch: the intra-branch conflicts cost more than the wall-clock saved. Genuinely parallel work belongs in separate sub-issues with their own branches, decided during blueprint.
 
 **Test-first — where the repo has test infrastructure.** No production code without a failing test first: write the test, run it and watch it fail for the right reason, write the minimal code to pass, run it green, then refactor. Wrote the code before its test? Delete it and start over — don't keep it as "reference" and adapt it. Common excuses and the reality: "too simple to test" (simple code breaks too; the test costs 30 seconds); "I'll test after" (a test that never watched the bug fail proves nothing); "I already tested it by hand" (ad-hoc isn't repeatable — if it isn't a committed test, it didn't happen). If the repo has no test infrastructure, say so in the PR body; never fabricate tests.
 
 - **Match the repo's commit convention** — check `git log --oneline -20` before your first commit; if the repo uses Conventional Commits (`feat:`, `fix:`, ...), follow it. Don't invent your own style.
 - **Keep the PR reviewable** — if the diff grows past roughly 400 changed lines, stop and propose splitting into sub-issues (each with its own PR). Oversized reviews get rubber-stamped; small PRs get real review.
-- **Stacked branches after a squash merge** — if this branch was built on another PR's branch and that PR squash-merges, the squash rewrites history: your branch's old base commits are no longer on the default branch, so the PR shows a polluted diff or conflicts. Re-point it onto the merged result: `git fetch origin && git rebase --onto origin/<default-branch> <old-base-sha> <this-branch>`, then force-push with `--force-with-lease`. Do this before continuing, not after opening the PR.
+- **Branch from the up-to-date default, not from another open PR's branch.** Independent PRs that each branch off the default integrate cleanly; a stack of branches does not. Stack only when a change has a hard dependency on unmerged work — and never under squash-merge, where the parent landing rewrites history and forces the child into a duplicate-content conflict cascade. If you are rebasing and force-pushing a child after its parent merged, that churn is the signal the work should not have been stacked: as a one-time recovery re-point it with `git fetch origin && git rebase --onto origin/<default-branch> <old-base-sha> <this-branch>` then `--force-with-lease`, and from then on sequence — land one, open the next from the merged default.
 - **A planned change may be protected** — a `Write`/`Edit` is denied by a hook, the path is owner-owned (CODEOWNERS / a protected config), or policy forbids touching it. Treat the protection as authoritative: do NOT retry the write, escalate permissions, or route around the guard. Leave the file untouched, implement everything else, and record the deferral explicitly in the PR body ("Deferred: `<path>` is protected — needs owner action") and to the user. A protected file is a deferral, not a blocker to defeat.
 
 ### 4. Run the FULL gates — before committing the final state
@@ -109,7 +110,7 @@ A failing gate blocks the PR. Fix the cause — do not skip, disable, or `--no-v
 - Change ONE thing at a time and re-run. A burst of simultaneous changes hides which one mattered.
 - **After 3 failed fixes, STOP.** Repeated failure — especially surfacing somewhere new each time — means the approach or the plan is wrong, not that fix #4 is around the corner. Step back, question the design, and raise it with the user instead of guessing again.
 
-**If a gate has no corresponding script in the repo** (e.g., no test setup yet), it does not block the PR — state its absence explicitly in the PR body instead of silently skipping it.
+**A file the repo's own gates don't cover is still unverified, not verified-by-default.** For every file the diff touches that no repo gate exercises, run the cheapest language-appropriate loadability check before committing — `bash -n` or `shellcheck` for shell, a parse for JSON and YAML, `tsc --noEmit` for TypeScript the build skips, `py_compile` for Python — and read its result this turn. Only a whole gate the repo genuinely lacks (e.g., no test setup yet) is exempt; state that absence explicitly in the PR body instead of skipping silently.
 
 ### 4.5. Self-review the diff against the plan
 
@@ -161,15 +162,10 @@ gh pr checks <pr-number> --watch
 ```
 
 - **No checks exist** → `gh pr checks --watch` exits non-zero with `no checks reported` when a PR has zero check runs. That is NOT a CI failure — do NOT loop trying to "fix" it. Report "no CI configured" (and, for a team-owned repo, suggest adding it) and stop.
-- **All checks green** → report the PR URL + CI status to the user. Done.
+- **All checks green** → CI is clear, but do NOT stop here: green CI is the precondition for the AI-review round below, not the finish line. Report the PR URL and CI status, then handle that round before declaring done.
 - **A check fails** → treat it exactly like a failing local gate: debug by root cause (Step 4), fix, push, re-watch. Never hand the PR over for review with red CI.
 
-**Responding to review feedback on the PR:**
-
-- Evaluate each comment against the codebase before changing anything — verify the claim; don't reflexively comply.
-- A wrong or YAGNI suggestion gets technical pushback, not performative agreement ("you're absolutely right!"); a correct one gets the fix, stated plainly.
-- Fix one comment at a time and re-verify (Step 4) after each.
-- Reply in the inline review thread, not as a top-level PR comment.
+**After CI is green, the work is not done until the AI-review round is handled.** On every push, AI reviewers (CodeRabbit, Gemini Code Assist, and the like) re-review the PR. Check for a new bot review round, and when one is present **hand off to the `rebut` skill** to triage it. Do not answer bot review comments inline yourself: `rebut` owns that loop — it verifies each finding against the real code, fixes the real ones, refutes the false positives with evidence, and replies in-thread under its attribution marker. If no bot review has landed yet, tell the user "CI green; bot review pending — say the word when it lands" rather than declaring done. `rebut` runs under the account that owns the PR; on a fork the maintainer runs it, not the contributor.
 
 ## Red Flags — STOP
 
@@ -182,19 +178,25 @@ gh pr checks <pr-number> --watch
 - About to report "done" while CI is red or still pending → STOP. Watch `gh pr checks` to green first.
 - About to retry, `--force`, `--no-verify`, or reroute a push/PR that a hook or policy blocked → STOP. Hand off to the user.
 - About to retry a write the environment denied (protected/owner-owned file) → STOP. Defer it and document in the PR body.
+- About to open a separate PR for what is really part of ONE logical change already in flight — its tests, docs, config, or a closely-coupled fix — or to stack a branch on an unmerged PR → STOP. Related parts of one change ship in one PR; branch independent changes from the default; stack only on a hard dependency, never under squash-merge.
+- About to push or open a PR after the user scoped the session to local-only or draft-only and has not lifted it → STOP. A broad "do it all" sets the goal, not the blast radius; reconfirm before any outward write.
+- About to report "CI green, done" without checking for and handing off the AI-review round → STOP. Hand off to rebut first.
 
 ## Rationalizations
 
-| Excuse                                          | Reality                                                                                           |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| "Tests are flaky, I'll open the PR anyway"      | A red gate means not ready. Fix the cause or quarantine explicitly with the reviewer's knowledge. |
-| "The PR template is generic, I'll write my own" | The repo chose that template. Fill it; don't replace it.                                          |
-| "I'll tick the checklist to save time"          | Ticking undone work is lying to the reviewer. Do it, then tick.                                   |
-| "`--no-verify` is faster"                       | Bypassing hooks ships the bug the gate exists to catch.                                           |
-| "I'll commit straight to main, it's small"      | Every change ships via a branch and PR that closes the issue.                                     |
-| "The guard hook is just being annoying"         | A guard hook (blocked push, protected file) is the user's policy. Stop and hand off; never evade. |
-| "I'll widen permissions so it stops prompting"  | This skill never weakens permissions or bypasses guards. Friction is the user's choice to change. |
+| Excuse                                                     | Reality                                                                                                                                                                                                                          |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "Tests are flaky, I'll open the PR anyway"                 | A red gate means not ready. Fix the cause or quarantine explicitly with the reviewer's knowledge.                                                                                                                                |
+| "The PR template is generic, I'll write my own"            | The repo chose that template. Fill it; don't replace it.                                                                                                                                                                         |
+| "I'll tick the checklist to save time"                     | Ticking undone work is lying to the reviewer. Do it, then tick.                                                                                                                                                                  |
+| "`--no-verify` is faster"                                  | Bypassing hooks ships the bug the gate exists to catch.                                                                                                                                                                          |
+| "I'll commit straight to main, it's small"                 | Every change ships via a branch and PR that closes the issue.                                                                                                                                                                    |
+| "The guard hook is just being annoying"                    | A guard hook (blocked push, protected file) is the user's policy. Stop and hand off; never evade.                                                                                                                                |
+| "I'll widen permissions so it stops prompting"             | This skill never weakens permissions or bypasses guards. Friction is the user's choice to change.                                                                                                                                |
+| "They said 'do it all', so I'll create every issue and PR" | "Do it all" sets the goal, not the blast radius. A broad directive never overrides an earlier specific constraint such as local-first, and never turns one approval into a batch. Confirm the named set of outward writes first. |
+| "CI is green, so the PR is done"                           | AI reviewers post their round after the push. Hand it to rebut and clear it before claiming done.                                                                                                                                |
+| "No gate covers this file, so it's fine"                   | No gate means no evidence, not a free pass. Run the file's own syntax or parse check such as `bash -n` or `tsc --noEmit` before committing.                                                                                      |
 
 ## Running with fewer prompts (opt-in, user's choice)
 
-If you want fewer approval prompts for an end-to-end run, that is the user's decision to make in their own Claude Code settings — for example pre-approving specific, scoped read-only commands (`gh pr checks`, `git status`) or enabling an OS sandbox — **before** starting. This skill never weakens permissions for you, never bypasses a guard hook, and never suggests `--no-verify`, `--force`, or `--dangerously-*` flags to reduce friction. If a step is blocked it stops and hands off (Steps 5 and 6) rather than seeking a way around the prompt. Lowering prompt friction must never lower a security boundary.
+If you want fewer approval prompts for an end-to-end run, that is the user's decision to make in their own Claude Code settings — for example pre-approving specific, scoped read-only commands (`gh pr checks`, `git status`) or enabling an OS sandbox — **before** starting. This skill never weakens permissions for you, never bypasses a guard hook, and never suggests `--no-verify`, `--force`, or `--dangerously-*` flags to reduce friction. If a step is blocked it stops and hands off (Steps 5 and 6) rather than seeking a way around the prompt. Lowering prompt friction must never lower a security boundary. One end-to-end go-ahead authorizes shipping the ONE issue at hand through its single PR — not a batch of new issues or PRs across the session, and not outward writes the user earlier scoped out.

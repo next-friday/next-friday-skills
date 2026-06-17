@@ -80,16 +80,16 @@ These skills condense how disciplined teams actually ship — design review, tra
 
 1. **blueprint** — Activates before any code is written. Interviews you through the decision tree, proposes 2-3 approaches, presents the design in reviewable sections, then records it as a GitHub issue and writes the implementation plan in the issue body.
 
-2. **implement** — Activates when an issue's design and plan are approved ("implement issue #12"). Branches from the issue, works task by task, runs the full gates, opens a templated PR, and watches CI until it's green.
+2. **implement** — Activates when an issue's design and plan are approved ("implement issue #12"). Branches from the issue, works task by task, runs the full gates, opens a templated PR, watches CI to green, then hands off to `rebut` for the AI-review round.
 
-3. **rebut** — Activates when an open PR has AI code-review comments. Verifies each finding against the real code, fixes the ones that reproduce, refutes false positives with evidence, and replies in-thread marked as automated triage.
+3. **rebut** — Activates after a push, or whenever an open PR has AI code-review comments. Verifies each finding against the real code, fixes the ones that reproduce, refutes false positives with evidence, and replies in-thread marked as automated triage.
 
 Mandatory workflows, not suggestions — the hard gates are part of the skills.
 
 ## Reference
 
 - **[blueprint](./plugins/next-friday/skills/blueprint/SKILL.md)** — Design interview → approved design recorded in a GitHub issue → implementation plan. The default flow, with tiered depth (trivial / standard / large).
-- **[implement](./plugins/next-friday/skills/implement/SKILL.md)** — Approved issue → linked branch → gated commits → templated PR → CI watched to green.
+- **[implement](./plugins/next-friday/skills/implement/SKILL.md)** — Approved issue → linked branch → gated commits → templated PR → CI watched to green → handoff to rebut.
 - **[rebut](./plugins/next-friday/skills/rebut/SKILL.md)** — Open PR with AI review comments → verified triage → fixes plus evidence-backed refutals → in-thread replies.
 
 ## Requirements

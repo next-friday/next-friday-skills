@@ -33,7 +33,7 @@ All **artifacts** are English: issue title, body, comments, labels, spec files, 
 
 ## Scale the Process to the Change
 
-Every change — including a one-line fix — gets an issue, an approval, and a PR. **What scales is the depth of the design work, never the existence of the gate.**
+Every **logical change** — the smallest set of edits that ships and reviews as one thing — gets an issue, an approval, and a PR. A logical change carries its own code, tests, docs, and config together in that one PR; they never split into separate PRs. **What scales is the depth of the design work, never the existence of the gate.**
 
 | Tier         | Examples                                                           | Process                                                                                                                                                                                                                                                                                                                                              |
 | ------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -45,9 +45,13 @@ State your tier call and let the user veto it. Misjudged? **Escalate, never down
 
 The "too simple to need a design" excuse stays banned — trivial work still gets its 2-4 sentences and an approval. "Simple" changes are where unexamined assumptions cause the most wasted work.
 
+## Batch vs. split
+
+The tier table scales DEPTH; this scales FAN-OUT — how many issues and PRs a session produces. Before opening a second issue or PR, ask whether the new change is RELATED to one already in flight: same surface, same goal, would a reviewer want to see them together. If related and the combined diff stays reviewable — roughly the 400-line ceiling the Amendments rule uses below — it is ONE issue and ONE PR, with one task and one Done per piece. Split into separate PRs only when the changes are UNRELATED, or when combined they would exceed that ceiling. Four PRs for one coherent improvement is fan-out cost — branch juggling, repeated CI, merge sequencing — not cleanliness.
+
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order (**Trivial tier:** steps 2-4 collapse into the single short design message):
+You MUST create a task for each of these items and complete them in order (**Trivial tier:** steps 2-4 collapse into the single short design message and step 5's separate temp-`.md` draft is skipped — the 2-4 sentence design posted in chat IS the draft, and its approval authorizes recording straight to the issue; steps 6, 7, and 8 still run, with step 7's self-review a quick re-read rather than a reviewer-subagent pass):
 
 0. **Preflight `gh`** — run `gh auth status`; if `gh` is missing/unauthenticated or the repo has no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
 1. **Explore project context** — check files, docs, recent commits, AND existing issues (`gh issue list`)
@@ -56,7 +60,7 @@ You MUST create a task for each of these items and complete them in order (**Tri
 4. **Present design** — in sections scaled to their complexity, get user approval after each section
 5. **Stage the draft for review** — write the converged design to a temp `.md`, link it for the user (forwardable to a reviewer), and wait for their approval before creating the issue (see Draft Review)
 6. **Record design** — to the GitHub issue body; the approved draft becomes the body (see Recording the Design)
-7. **Self-review** — re-read the recorded design for placeholders, contradictions, ambiguity, scope; for a new or multi-component issue also dispatch the reviewer subagent (see Self-Review), and surface any resulting change to the user
+7. **Self-review** — re-read the recorded design for placeholders, contradictions, ambiguity, scope; for a multi-component issue or any newly created Standard or Large issue also dispatch the reviewer subagent (see Self-Review), and surface any resulting change to the user
 8. **Transition to implementation** — write the implementation plan; the **implement** skill ships it
 
 **The terminal state is the implementation plan.** Do NOT jump to writing code, scaffolding, or opening a PR — produce the plan first.
@@ -133,7 +137,7 @@ Before titling the issue, check whether the repo enforces a convention: look for
 
 ### Create vs. update — ASK, don't guess
 
-- **No relevant issue exists** → create one. Confirm before creating ("No existing issue found — create a new one titled `<X>`?").
+- **No relevant issue exists** → create one. Confirm before creating ("No existing issue found — create a new one titled `<X>`?"). One yes authorizes that one issue, not a batch; and an earlier constraint such as local-only or draft-only outranks a later broad "do it all" — reconfirm before widening the scope of outward writes.
 - **A relevant issue exists** → update its body with the approved design (`gh issue edit <n> --body-file`). The same structure rules apply: when a template/form defines sections, mirror them; self-review reads the updated body. Comments stay a discussion log, not where the design lives.
 - **Never auto-match an issue by title similarity.** If unsure which issue, ask the user for the number.
 
@@ -159,7 +163,7 @@ Write the filled body (template-based or plain) to the temp file first. Add `--l
 - **Label by scope** — apply the labels that match the work's area/size. Only pass `--label` for labels that already exist (check `gh label list`); to add a new label, ask the user first — never create labels unprompted in a shared repo.
 - **Invite the relevant people** — assign/mention those who should read what's planned (`--assignee`, or `@mention` in the body). Determine who from CODEOWNERS or by asking the user — never guess.
 - **The body is the living design** — when the design changes before approval, rewrite the body (`gh issue edit <n> --body-file`) to the best current whole-picture version; GitHub preserves the body's edit history. Comments are for discussion, questions, and a decision log — never where the design accretes.
-- **Sub-issues** — when the scope is large, split it into sub-issues (one shippable piece each) and link them from the parent body as a task list (`- [ ] #<n>`). Each sub-issue gets its own branch and PR later.
+- **Sub-issues** — when the scope is large, split it into sub-issues (one shippable piece each) and link them from the parent body as a task list (`- [ ] #<n>`). Each sub-issue gets its own branch **off the default branch** and its own PR, and integrates independently — do not stack one sub-issue's branch on another's. Order them by what unblocks what; under squash-merge especially, sequence them — land one, open the next from the merged default — rather than stacking, which forces duplicate-content rebases.
 - **Amendments vs. restructure** — body rewrites refine the design _before approval_. Re-estimate the delivery after each revision: the moment accumulated scope would exceed one reviewable PR (a useful heuristic is roughly 400 changed lines — adjust to the repo's norms), STOP amending and restructure — convert the issue into a tracking epic with a sub-issue task list, one shippable piece each, ordered by what unblocks what. Restructure happens BEFORE implementation starts, never after PRs are open.
 
 ### Self-Review
@@ -171,7 +175,7 @@ After recording the design, re-read it with fresh eyes:
 3. **Scope check:** Focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two ways? Pick one and make it explicit.
 
-Fix issues by **updating the issue body** (`gh issue edit <n> --body-file`) so the body always holds the complete current design; GitHub preserves the edit history. For multi-component designs or any newly created issue, also dispatch the reviewer subagent in `spec-issue-reviewer-prompt.md` for a deeper pass; skip it only for small single-component additions to an existing issue.
+Fix issues by **updating the issue body** (`gh issue edit <n> --body-file`) so the body always holds the complete current design; GitHub preserves the edit history. For multi-component designs or any newly created Standard or Large issue, also dispatch the reviewer subagent in `spec-issue-reviewer-prompt.md` for a deeper pass; skip it for a Trivial-tier change and for small single-component additions to an existing issue.
 
 ### Confirm the recorded design
 

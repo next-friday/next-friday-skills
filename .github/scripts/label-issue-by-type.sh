@@ -11,7 +11,12 @@ if [ -z "$title" ] || [ -z "$number" ] || [ -z "$repo" ]; then
 fi
 
 type=$(printf '%s' "$title" | sed -nE 's/^([a-z]+)\([^)]+\): .+/\1/p')
-allowed="build chore ci docs feat fix perf refactor revert setup style test"
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+allowed=$(jq -r '.rules["type-enum"][2] | join(" ")' "$root/.commitlintrc.json" 2>/dev/null || true)
+if [ -z "$allowed" ]; then
+  echo "::error::Could not read type-enum from .commitlintrc.json" >&2
+  exit 2
+fi
 
 case " $allowed " in
   *" $type "*) ;;

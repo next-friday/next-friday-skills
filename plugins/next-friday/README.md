@@ -1,15 +1,16 @@
 # Next Friday
 
-Issue-driven development workflow for Claude Code. Two skills that chain into one pipeline:
+Issue-driven development workflow for Claude Code. Three skills that chain into one pipeline:
 
 ```text
-blueprint ──→ approved issue + plan ──→ implement ──→ PR, green CI
+blueprint ──→ approved issue + plan ──→ implement ──→ PR, green CI ──→ rebut (after push, AI-review triage)
 ```
 
-| Skill       | When                                                                                                                                        |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `blueprint` | Design interview → approved design recorded in the GitHub issue body (design + implementation plan).                                        |
-| `implement` | The issue is approved — branch from it, code task by task, pass all gates, open PR, watch CI to green.                                      |
+| Skill       | When                                                                                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `blueprint` | Design interview → approved design recorded in the GitHub issue body (design + implementation plan).                                                      |
+| `implement` | The issue is approved — branch from it, code task by task, pass all gates, open PR, watch CI to green, then hand off to `rebut`.                          |
+| `rebut`     | After a push, or when an open PR carries AI code-review comments — verify each finding, fix or refute with evidence, reply in-thread as automated triage. |
 
 The process scales to the change: trivial work (typo, dependency bump) takes a 2-4 sentence design and one approval; it never skips the issue, the approval, or the PR.
 
