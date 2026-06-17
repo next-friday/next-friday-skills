@@ -1,7 +1,7 @@
 {
   "name": "next-friday",
   "description": "Issue-driven development workflow: brainstorm a design into a GitHub issue, ship it as a PR that passes all gates and CI, and triage the AI code-review comments.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "Next Friday"
   },

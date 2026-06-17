@@ -1,5 +1,11 @@
 # @next-friday/next-friday
 
+## 0.6.0
+
+### Minor Changes
+
+- 2a769f7: Add the `rebut` skill: triage AI code-review findings on a pull request — verify each against the real code, fix the valid ones, refute false positives with evidence, and reply per thread marked as automated triage. Reply-only; the human resolves the threads.
+
 ## 0.5.0
 
 ### Minor Changes
