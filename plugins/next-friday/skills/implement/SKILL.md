@@ -49,9 +49,11 @@ Read the actual file and fill every section. If a template contains a checklist,
 ### 1. Identify the issue and its plan
 
 ```sh
-gh auth status
+"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"
 gh issue view <n> --comments
 ```
+
+`preflight.sh` verifies `gh` is authenticated and the repo has a GitHub remote; on a missing prerequisite it prints the fix and exits non-zero.
 
 If `gh` is missing or unauthenticated, STOP and tell the user to install it and run `gh auth login` — do not improvise with raw `git`/`curl`. If the repo has no GitHub remote, STOP and ask how they track work; this skill is GitHub-specific.
 
@@ -136,7 +138,7 @@ Stage only the files this issue touched — never blanket `git add -A`/`git add 
 
 ### 6. Open the PR from the repo's template
 
-Read `.github/PULL_REQUEST_TEMPLATE.md` and fill every section (or use the no-template fallback sections above). Write the body to a temp file — multi-line bodies break inline `--body` quoting:
+Print the repo's PR template with `"${CLAUDE_PLUGIN_ROOT}/scripts/pr-template.sh"` and fill every section — it writes the template to stdout, lists the options when a `PULL_REQUEST_TEMPLATE/` directory holds several, and exits 3 with a fallback note when the repo has none (then use the no-template Summary / Changes / How to verify body above). Write the body to a temp file — multi-line bodies break inline `--body` quoting:
 
 ```sh
 gh pr create --head <branch> --title "<English title per the repo's title convention>" --body-file /tmp/pr-body.md
@@ -156,12 +158,13 @@ Local gates passing is necessary, not sufficient — the repo's CI and branch pr
 First see whether the PR has any checks at all, then watch only if it does:
 
 ```sh
-gh pr checks <pr-number> || echo "no checks reported"
-# only when checks exist:
-gh pr checks <pr-number> --watch
+gh pr checks <pr-number> --watch                            # wait for checks to settle (exits non-zero if none)
+"${CLAUDE_PLUGIN_ROOT}/scripts/ci-status.sh" <pr-number>    # classify the settled state
 ```
 
-- **No checks exist** → `gh pr checks --watch` exits non-zero with `no checks reported` when a PR has zero check runs. That is NOT a CI failure — do NOT loop trying to "fix" it. Report "no CI configured" (and, for a team-owned repo, suggest adding it) and stop.
+`ci-status.sh` prints the rows and a final status line, distinguishing the states by exit code: `ci: green` (0), `ci: failing` (1), a read error (2), `ci: none` (3), `ci: pending` (4).
+
+- **No checks exist** → `ci-status.sh` prints `ci: none` (exit 3). That is NOT a CI failure — do NOT loop trying to "fix" it. Report "no CI configured" (and, for a team-owned repo, suggest adding it) and stop.
 - **All checks green** → CI is clear, but do NOT stop here: green CI is the precondition for the AI-review round below, not the finish line. Report the PR URL and CI status, then handle that round before declaring done.
 - **A check fails** → treat it exactly like a failing local gate: debug by root cause (Step 4), fix, push, re-watch. Never hand the PR over for review with red CI.
 

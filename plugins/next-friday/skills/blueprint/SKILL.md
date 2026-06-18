@@ -53,7 +53,7 @@ The tier table scales DEPTH; this scales FAN-OUT — how many issues and PRs a s
 
 You MUST create a task for each of these items and complete them in order (**Trivial tier:** steps 2-4 collapse into the single short design message and step 5's separate temp-`.md` draft is skipped — the 2-4 sentence design posted in chat IS the draft, and its approval authorizes recording straight to the issue; steps 6, 7, and 8 still run, with step 7's self-review a quick re-read rather than a reviewer-subagent pass):
 
-0. **Preflight `gh`** — run `gh auth status`; if `gh` is missing/unauthenticated or the repo has no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
+0. **Preflight `gh`** — run `"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"`; if it fails (gh missing/unauthenticated or no GitHub remote), STOP and tell the user (see Preflight) before any other `gh` call
 1. **Explore project context** — check files, docs, recent commits, AND existing issues (`gh issue list`)
 2. **Interview the decision tree** — resolve root context first, then question relentlessly in dependency order (batch tightly-coupled questions, each with a recommended answer) until shared understanding (see Interviewing below)
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
@@ -157,7 +157,7 @@ Before creating the issue, stage the converged design for the user to review:
 
 ### Preflight
 
-Run `gh auth status` first. If `gh` is missing or unauthenticated, STOP and tell the user — do NOT silently fall back to writing a local file. Ask them to authenticate or confirm an alternative. If the repo has no GitHub remote (GitLab, Bitbucket, plain git), STOP and ask the user how they track work; this skill is GitHub-specific.
+Run `"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"` first — it verifies `gh` is authenticated and the repo has a GitHub remote, printing the fix and exiting non-zero otherwise. If it fails, STOP and tell the user — do NOT silently fall back to writing a local file. Ask them to authenticate or confirm an alternative. If the repo has no GitHub remote (GitLab, Bitbucket, plain git), the script flags it; STOP and ask the user how they track work — this skill is GitHub-specific.
 
 ### Title convention — discover, don't invent
 
