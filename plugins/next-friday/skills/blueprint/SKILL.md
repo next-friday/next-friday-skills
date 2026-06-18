@@ -114,6 +114,34 @@ Interview the user relentlessly about every aspect of the design until you reach
 
 ## Recording the Design
 
+### Depth — make the body a precise spec
+
+The recorded body is the spec the **implement** skill builds from, so it must carry the decisions, contracts, and verification an implementer needs — not a thin sketch. Scale depth to the tier: **Standard** and **Large** issues carry the elements below; **Trivial** keeps its 2-4 sentence design.
+
+**Depth, not ceremony.** Include each element **only when it has content**. Never emit an empty heading as a ritual (`Global Constraints: none`, `Out of scope: nothing`) — that is the placeholder bloat the Self-Review below bans. Mandate the _check_, not a fixed set of headings.
+
+Mandatory for Standard/Large — cheap, always carries information:
+
+- **Decision log** — each material decision: choice + what it rules out + why; add an `Origin` note (user answer / constraint / review finding) only where the driver is non-obvious.
+- **File map + reuse callout** — every file to create or modify with its single responsibility, plus what already exists to reuse rather than rewrite.
+- **Verification** — concrete command(s) and the expected result that prove each Done criterion.
+- **Out of scope** — deliberate skips, each with a one-line reason.
+
+Conditional — include only when the change actually has it:
+
+- **Contracts** (per-task Consumes / Produces, exact signatures + a usage example) — when the work has cross-task seams or a public surface.
+- **Global constraints** — when the repo has binding project-wide rules (version floors, naming, platform) every task inherits; copy them verbatim from the repo's own source of truth (`CONTRIBUTING`, the template), never paraphrased.
+- **Context / prior-art** — when an existing implementation is replaced, migrated, or continued.
+
+These map onto the repo's issue template (below); they never replace it. Fold the decision log and contracts into the template's design/proposal field, the verification into its acceptance criteria, the skips into its out-of-scope field.
+
+### Versioning the body
+
+A reader must be able to return to an earlier design. Two layers cover it:
+
+1. **Native edit history** — GitHub keeps the full edit history of an issue body, viewable in the web UI ("edited ▾"). This is the durable, team-visible backup and needs no extra work; it is also why the design lives in the body, never in a machine-local file a teammate cannot open.
+2. **In-body version banner** — once the body has been revised after its first recording, add a banner at the very top of the body, above the first template heading (e.g. `### Goal`), not merely above the plan: `> v2 — <what changed and why>`. Follow it with a short **Revisions** list mapping each change to its trigger (a review finding, a user correction). A v1 body carries no banner.
+
 ### Draft Review (before the issue)
 
 Before creating the issue, stage the converged design for the user to review:
@@ -189,7 +217,7 @@ If the self-review or reviewer surfaced any change, point it out explicitly and 
 
 After the user approves, write the implementation plan and record it in the **issue body**, after the design — never a committed repo file. The body then holds the complete design + plan as one artifact; comments stay a discussion log.
 
-Write the plan at **task altitude**: state what each task does, which files it touches, and how it's proven — the exact code and text changes are produced in the PR, not pre-baked into the issue, so the body stays readable.
+Write the plan at **task altitude**: state what each task does, which files it touches, and how it's proven. Derivable code is produced test-first in the PR, not pre-baked into the issue, so the body stays readable — **include a full code sketch only** where exact code pins something a signature or prose cannot: an ordering that must not change, an exact data shape, a hard algorithm, or a public-API surface. Otherwise state the contract, not the code.
 
 **Plan header** — open with:
 
@@ -200,11 +228,14 @@ Write the plan at **task altitude**: state what each task does, which files it t
 
 **File map first** — before decomposing, list every file to create or modify with its single responsibility. Files that change together live together; split by responsibility, not by technical layer.
 
+**Right-size each task** — a task is the smallest unit that carries its own test cycle and is worth a fresh reviewer's gate. Fold setup, config, scaffolding, and docs into the task whose deliverable needs them; split only where a reviewer could reject one task while approving its neighbor.
+
 **Ordered tasks** — each task is a checkbox carrying:
 
 - a title and a `**Files:**` block (Create / Modify `path:lines` / Test);
-- the task's intent and an explicit **Done** criterion — what proves it (a passing gate, a green test, an observable behavior);
-- for code work, the behavior to test and the key names/signatures it introduces. The test-first code is written during implementation (the implement skill enforces it), not dumped here.
+- where the task has seams, a **Consumes / Produces** line naming the exact signatures it takes from earlier tasks and the names/types later tasks rely on — an implementer seeing only this task learns the neighboring contracts here;
+- the task's intent, an explicit **Done** criterion (a passing gate, a green test, an observable behavior), and the **Verification** that proves it — the exact command and its expected result;
+- for code work, the behavior to test and the key names/signatures it introduces. The test-first code is written during implementation (the implement skill enforces it); a full code sketch appears only under the policy above.
 
 **No placeholders** — these are plan failures, never write them: "TBD/TODO/implement later"; "add appropriate error handling / handle edge cases" without saying what; "write tests for the above" without naming them; "similar to Task N" (state it directly); references to types or functions no task defines. Every task names concrete files and a checkable Done.
 
