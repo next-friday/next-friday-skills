@@ -16,6 +16,11 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v git >/dev/null 2>&1; then
+  echo "preflight: git not found — install git." >&2
+  exit 1
+fi
+
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "preflight: not inside a git repository." >&2
   exit 1

@@ -135,7 +135,7 @@ gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" -F body=@/tm
 
 If Step 4 pushed any fix commits, that push re-triggers CI and a fresh AI-review round. Before summarizing:
 
-- **Re-verify CI.** When checks are still settling, wait with `gh pr checks <pr> --watch`, then classify with `"${CLAUDE_PLUGIN_ROOT}/scripts/ci-status.sh" <pr>`: `ci: green` (exit 0) is clear; `ci: failing` (exit 1) blocks — debug it; `ci: none` (exit 3) means no CI configured, which is NOT a failure (note it and move on, exactly as the **implement** skill handles it); `ci: pending` means re-run `--watch`, then re-probe. Confirm green with your own eyes — never assert it without the script's evidence.
+- **Re-verify CI.** When checks are still settling, wait with `gh pr checks <pr> --watch`, then classify with `"${CLAUDE_PLUGIN_ROOT}/scripts/ci-status.sh" <pr>`: `ci: green` (exit 0) is clear; `ci: failing` (exit 1) blocks — debug it; `ci: none` (exit 3) means no CI configured, which is NOT a failure (note it and move on, exactly as the **implement** skill handles it); `ci: pending` (exit 4) means re-run `--watch`, then re-probe; a read error (exit 2) is not "green" — surface it. Confirm green with your own eyes — never assert it without the script's evidence.
 - **Catch the new round.** The fix-push provokes a fresh bot round. Re-run Step 1's gather; if it surfaced new actionable findings, triage them through Steps 2-5, then return to the top of this step. Every push repeats this re-verify and re-gather; the loop ends only when a gather adds nothing new — only acknowledgements, or no comments.
 
 If Step 4 changed nothing (every finding was REFUTE or INTENTIONAL), there is no new push and no new round — skip straight to Step 6.
