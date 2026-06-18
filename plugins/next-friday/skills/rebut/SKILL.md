@@ -131,6 +131,8 @@ gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" -F body=@/tm
 
 **Reply-only.** Do NOT resolve the threads — resolving is the human's call.
 
+**Leave no thread blank.** Every finding gathered in Step 1 gets a reply — a `FIX` with its SHA, or a `REFUTE` / `INTENTIONAL` / `MINOR` with its reason. A bot comment with no response is indistinguishable from un-triaged work: a human reviewer cannot tell whether the skill ran, so they re-invoke it and the round loops. Silence is never a verdict — disagreeing with a finding still requires a stated reason, never an empty thread.
+
 ## Step 5.5 — Re-verify CI, then catch the round your fix-push provoked
 
 If Step 4 pushed any fix commits, that push re-triggers CI and a fresh AI-review round. Before summarizing:
@@ -142,8 +144,15 @@ If Step 4 changed nothing (every finding was REFUTE or INTENTIONAL), there is no
 
 ## Step 6 — Summarize
 
-Hand back a per-finding verdict table (finding → FIX / REFUTE / INTENTIONAL / MINOR → what you did),
-the fix commit SHAs, and the actual `ci-status.sh` result from Step 5.5 — reported as "CI is green" only when it truly is (`ci: green`, exit 0), or "no CI configured" when the PR has none (`ci: none`) — followed by a clear "these threads are answered and safe to Resolve."
+Close the round with a single triage-summary comment **on the PR conversation**, opened with the same attribution line and the `**rebut**` marker:
+
+```sh
+gh api "repos/$OWNER_REPO/issues/<pr>/comments" -F body=@/tmp/summary.md
+```
+
+It carries the per-finding verdict table (finding → FIX / REFUTE / INTENTIONAL / MINOR → evidence: a commit SHA for a fix, a concrete reason for a refute), the fix commit SHAs, and the `ci-status.sh` result from Step 5.5 — reported as "CI is green" only when it truly is (`ci: green`, exit 0), or "no CI configured" when the PR has none (`ci: none`) — and ends with a clear "these threads are answered and safe to Resolve."
+
+This posted comment is the closure artifact. It covers the **review summaries** — the top-level review bodies that are not inline threads you can reply to — and it gives a human the visible proof the round was triaged, so they do not re-invoke the skill and restart the loop. After posting it, hand the same table back to the caller.
 
 ## Across rounds: automate re-invocation, never pretend to watch
 
