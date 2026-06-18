@@ -133,7 +133,7 @@ Conditional — include only when the change actually has it:
 - **Global constraints** — when the repo has binding project-wide rules (version floors, naming, platform) every task inherits; copy them verbatim from the repo's own source of truth (`CONTRIBUTING`, the template), never paraphrased.
 - **Context / prior-art** — when an existing implementation is replaced, migrated, or continued.
 
-These map onto the repo's issue template (below); they never replace it. Fold the decision log and contracts into the template's design/proposal field, the verification into its acceptance criteria, the skips into its out-of-scope field.
+These map onto the repo's issue template (as described below); they never replace it. Fold the decision log and contracts into the template's design/proposal field, the verification into its acceptance criteria, the skips into its out-of-scope field.
 
 ### Versioning the body
 
