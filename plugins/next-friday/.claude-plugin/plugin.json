@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "next-friday",
   "description": "Issue-driven development workflow: brainstorm a design into a GitHub issue, ship it as a PR that passes all gates and CI, and triage the AI code-review comments.",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "author": {
     "name": "Next Friday"
   },
