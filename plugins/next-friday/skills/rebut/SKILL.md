@@ -53,22 +53,18 @@ The rest of this skill — the steps, the attribution marker, the auto-reply —
 ## Preflight
 
 ```sh
-gh auth status
+"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"
 ```
 
-Identify the PR: the `[pr-number]` argument, else the PR for the current branch
-(`gh pr view --json number`).
+`preflight.sh` confirms `gh` is authenticated and the repo has a GitHub remote; on a missing prerequisite it prints the fix on stderr and exits non-zero — relay that and stop. Identify the PR: the `[pr-number]` argument, else the PR for the current branch (`gh pr view --json number`).
 
 ## Step 1 — Gather every finding
 
 ```sh
-OWNER_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
-gh api --paginate "repos/$OWNER_REPO/pulls/<pr>/reviews"  --jq '.[] | "[\(.user.login)] \(.state)\n\(.body)\n"'
-gh api --paginate "repos/$OWNER_REPO/pulls/<pr>/comments" --jq '.[] | "[\(.user.login)] \(.path):\(.line) id=\(.id)\n\(.body)\n"'
+"${CLAUDE_PLUGIN_ROOT}/scripts/gather-review.sh" <pr>
 ```
 
-List each finding with its author, `path:line`, comment `id` (needed to reply), and body. Include
-the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot — recognizable by the `[bot]` login suffix shown in the gathered output — or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
+`gather-review.sh` prints a `REVIEWS` block (each review's author + state + body) and a `COMMENTS` block (each inline comment's author, `path:line`, `id=<id>`, and body) via `gh`'s built-in `--jq`, so nothing is invented or dropped. List each finding with its author, `path:line`, comment `id` (needed to reply), and body. Include the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot — recognizable by the `[bot]` login suffix shown in the gathered output — or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
 
 ## Step 2 — Verify each finding (the core of this skill)
 
@@ -139,7 +135,7 @@ gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" -F body=@/tm
 
 If Step 4 pushed any fix commits, that push re-triggers CI and a fresh AI-review round. Before summarizing:
 
-- **Re-verify CI.** Probe first with `gh pr checks <pr> || echo "no checks reported"`; when checks exist, run `gh pr checks <pr> --watch` and confirm green with your own eyes — never assert CI is green without this evidence. If the PR has no checks, `--watch` exits non-zero with `no checks reported`; that is NOT a failure — note "no CI configured" and move on, exactly as the **implement** skill handles it.
+- **Re-verify CI.** When checks are still settling, wait with `gh pr checks <pr> --watch`, then classify with `"${CLAUDE_PLUGIN_ROOT}/scripts/ci-status.sh" <pr>`: `ci: green` (exit 0) is clear; `ci: failing` (exit 1) blocks — debug it; `ci: none` (exit 3) means no CI configured, which is NOT a failure (note it and move on, exactly as the **implement** skill handles it); `ci: pending` means re-run `--watch`, then re-probe. Confirm green with your own eyes — never assert it without the script's evidence.
 - **Catch the new round.** The fix-push provokes a fresh bot round. Re-run Step 1's gather; if it surfaced new actionable findings, triage them through Steps 2-5, then return to the top of this step. Every push repeats this re-verify and re-gather; the loop ends only when a gather adds nothing new — only acknowledgements, or no comments.
 
 If Step 4 changed nothing (every finding was REFUTE or INTENTIONAL), there is no new push and no new round — skip straight to Step 6.
@@ -147,7 +143,7 @@ If Step 4 changed nothing (every finding was REFUTE or INTENTIONAL), there is no
 ## Step 6 — Summarize
 
 Hand back a per-finding verdict table (finding → FIX / REFUTE / INTENTIONAL / MINOR → what you did),
-the fix commit SHAs, and the actual `gh pr checks` result from Step 5.5 — reported as "CI is green" only when it truly is, or "no CI configured" when the PR has none — followed by a clear "these threads are answered and safe to Resolve."
+the fix commit SHAs, and the actual `ci-status.sh` result from Step 5.5 — reported as "CI is green" only when it truly is (`ci: green`, exit 0), or "no CI configured" when the PR has none (`ci: none`) — followed by a clear "these threads are answered and safe to Resolve."
 
 ## Across rounds: automate re-invocation, never pretend to watch
 
