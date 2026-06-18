@@ -129,7 +129,7 @@ A refute states the evidence:
 gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" -F body=@/tmp/reply.md
 ```
 
-**Reply-only.** Do NOT resolve the threads — resolving is the human's call.
+**Reply-only — never Resolve.** Post replies through the API; never click "Resolve conversation". The green Resolve button is the human reviewer's, and it is how they *verify* this skill's work: they read each thread, confirm a reply is present, confirm the summary comment exists, and only then resolve. If the skill resolves, the human cannot tell whether they or the agent closed the thread — the exact confusion that makes them re-check or re-run the triage. This skill's entire output is replies plus one summary comment; the Resolve button stays theirs.
 
 **Leave no thread blank.** Every finding gathered in Step 1 gets a reply — a `FIX` with its SHA, or a `REFUTE` / `INTENTIONAL` / `MINOR` with its reason. A bot comment with no response is indistinguishable from un-triaged work: a human reviewer cannot tell whether the skill ran, so they re-invoke it and the round loops. Silence is never a verdict — disagreeing with a finding still requires a stated reason, never an empty thread.
 
@@ -151,6 +151,8 @@ gh api "repos/$OWNER_REPO/issues/<pr>/comments" -F body=@/tmp/summary.md
 ```
 
 It carries the per-finding verdict table (finding → FIX / REFUTE / INTENTIONAL / MINOR → evidence: a commit SHA for a fix, a concrete reason for a refute), the fix commit SHAs, and the `ci-status.sh` result from Step 5.5 — reported as "CI is green" only when it truly is (`ci: green`, exit 0), or "no CI configured" when the PR has none (`ci: none`) — and ends with a clear "these threads are answered and safe to Resolve."
+
+State the coverage explicitly — **"replied to every finding (N of N)"** — so the human's verification is a glance, not an audit. The human reviewer's job is exactly this check: every AI-reviewer finding has a reply (fixed, refuted, or deferred with a reason), and the summary comment exists; once they confirm it, they Resolve.
 
 This posted comment is the closure artifact. It covers the **review summaries** — the top-level review bodies that are not inline threads you can reply to — and it gives a human the visible proof the round was triaged, so they do not re-invoke the skill and restart the loop. After posting it, hand the same table back to the caller.
 
