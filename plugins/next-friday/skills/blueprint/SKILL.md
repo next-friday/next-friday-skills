@@ -8,7 +8,7 @@ argument-hint: "[what to design]"
 
 # Blueprint
 
-Turn ideas into fully formed designs through relentless collaborative dialogue, then record the approved design in the **GitHub issue** where the team works. The issue body holds the design and the implementation plan. Every piece of work is tracked by an issue and delivered by a pull request that closes it.
+Turn ideas into fully formed designs through relentless collaborative dialogue. The terminal product is an approved design and implementation plan; record it in a **GitHub issue** only after an explicit, per-artifact go-ahead to write to the shared tracker — until then the design and plan live in chat or a temp draft. Once recording is authorized, the issue body holds the design and the plan, and the work ships as a pull request that closes that issue.
 
 ```text
 blueprint
@@ -18,7 +18,15 @@ blueprint
 ```
 
 <HARD-GATE>
-Do NOT write any code, scaffold any project, or take any implementation action until you have presented a design, the user has approved it, and the design is recorded in the issue body. The terminal action of this skill is the implementation plan. This applies to EVERY project regardless of perceived simplicity.
+Assume the GitHub tracker is SHARED by parallel agents and people unless the user says otherwise; you are not its sole owner. Two rules bind every step below. (1) Create or mutate no issue, PR, or branch — and post no comment, label, or assignment — without an explicit, per-artifact yes naming THAT artifact in this session; one yes authorizes one named artifact, never a batch, and a design approval is NOT a write authorization. (2) Touch no issue, branch, or PR this session did not itself create unless the user hands you its number; same-account authorship does not make it yours, and title or topic resemblance is not authorization. When in doubt about ownership or whether a write was authorized, STOP and ask.
+</HARD-GATE>
+
+<HARD-GATE>
+Explicit user instructions, CLAUDE.md, and saved feedback always outrank this skill. If the user scoped the session (local-only, draft-only, a specific issue), that scope binds and a later broad "do it all" never lifts it; reconfirm before widening. A saved "solo sandbox, skip the ceremony" note applies ONLY when the repo is confirmed solo; in a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts.
+</HARD-GATE>
+
+<HARD-GATE>
+Do NOT write any code, scaffold any project, or take any implementation action until you have presented a design, the user has approved it, and (when an outward write is authorized) the design is recorded in the issue body. The terminal action of this skill is the implementation plan; a local-only plan in chat or a temp draft is a valid terminal state when no GitHub write is authorized. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
 <HARD-GATE>
@@ -35,11 +43,11 @@ All **artifacts** are English: issue title, body, comments, labels, spec files, 
 
 Every **logical change**, the smallest set of edits that ships and reviews as one thing, gets an issue, an approval, and a PR. A logical change carries its own code, tests, docs, and config together in that one PR; they never split into separate PRs. **What scales is the depth of the design work, never the existence of the gate.**
 
-| Tier         | Examples                                                           | Process                                                                                                                                                                                                                                                                                                                                              |
-| ------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Trivial**  | typo, dependency bump, config value, copy change                   | Skip the interview and approaches. Write a 2-4 sentence design (what, why, risk), get one approval, record to the issue, hand off; the design approval also serves as the user review (the design approval and the review step are one). If the repo's template still applies, fill only the sections that are relevant and leave the rest minimal.  |
-| **Standard** | new feature, behavior change, refactor, bugfix with design choices | Full flow below: interview → approaches → design sections → approval.                                                                                                                                                                                                                                                                                |
-| **Large**    | multiple subsystems, platform work                                 | Decompose into sub-issues first; each sub-issue then goes through Standard.                                                                                                                                                                                                                                                                          |
+| Tier         | Examples                                                           | Process                                                                                                                                                                                                                                                                                                                                             |
+| ------------ | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Trivial**  | typo, dependency bump, config value, copy change                   | Skip the interview and approaches. Write a 2-4 sentence design (what, why, risk) and get one approval; that approval is the user review, not a write authorization. Recording still needs step 6's per-artifact yes before any write to the shared issue. Fill only the relevant template sections and leave the rest minimal.                      |
+| **Standard** | new feature, behavior change, refactor, bugfix with design choices | Full flow below: interview → approaches → design sections → approval.                                                                                                                                                                                                                                                                               |
+| **Large**    | multiple subsystems, platform work                                 | Decompose into sub-issues first; each sub-issue then goes through Standard.                                                                                                                                                                                                                                                                         |
 
 State your tier call and let the user veto it. Misjudged? **Escalate, never downgrade mid-flight:** the moment a "trivial" change sprouts a real decision such as an interface, data shape, or user-visible trade-off, stop and run the Standard flow.
 
@@ -49,17 +57,19 @@ The "too simple to need a design" excuse stays banned. Trivial work still gets i
 
 The tier table scales DEPTH; this scales FAN-OUT, meaning how many issues and PRs a session produces. Before opening a second issue or PR, ask whether the new change is RELATED to one already in flight: same surface, same goal, would a reviewer want to see them together. If related and the combined diff stays reviewable, roughly the 400-line ceiling the Amendments rule uses below, it is ONE issue and ONE PR, with one task and one Done per piece. Split into separate PRs only when the changes are UNRELATED, or when combined they would exceed that ceiling. Four PRs for one coherent improvement is fan-out cost from branch juggling, repeated CI, and merge sequencing, not cleanliness.
 
+Creating more than one GitHub artifact in a session — including an epic plus its sub-issues — is a fan-out that a single design approval never authorizes. List the exact named set ("create these 5: epic X plus sub-issues a, b, c, d?") so the user sees the whole fan-out, then get an explicit per-artifact yes for each before its `gh issue create`; approving the design is not authorizing the writes, and one confirmation never covers the batch.
+
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order. **Trivial tier:** steps 2-4 collapse into the single short design message and step 5's separate temp-`.md` draft is skipped. The 2-4 sentence design posted in chat IS the draft, and its approval authorizes recording straight to the issue. Steps 6, 7, and 8 still run, with step 7's self-review a quick re-read rather than a reviewer-subagent pass.
+You MUST create a task for each of these items and complete them in order. **Trivial tier:** steps 2-4 collapse into the single short design message and step 5's separate temp-`.md` draft is skipped. The 2-4 sentence design posted in chat IS the draft; approving it is not a write authorization, so step 6's separate per-artifact outward-write yes is still required before recording to the issue. Steps 6, 7, and 8 still run, with step 7's self-review a quick re-read rather than a reviewer-subagent pass.
 
 0. **Preflight `gh`:** run `"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"`; if it fails because gh is missing/unauthenticated or there is no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
-1. **Explore project context:** check files, docs, recent commits, AND existing issues (`gh issue list`)
+1. **Explore project context and check for collisions:** read files, docs, recent commits, AND open issues, branches (`gh issue list`, `git branch -a`, and `gh issue develop <n> --list` only when the user named an existing issue to update), and open PRs for in-flight or overlapping work by other agents; surface any conflict to the user before designing or creating anything, and touch no artifact this session did not create
 2. **Interview the decision tree:** resolve root context first, then question relentlessly in dependency order, batching tightly-coupled questions each with a recommended answer, until shared understanding (see Interviewing below)
 3. **Propose 2-3 approaches** with trade-offs and your recommendation
 4. **Present design** in sections scaled to their complexity, getting user approval after each section
-5. **Stage the draft for review:** write the converged design to a temp `.md`, link it for the user so it is forwardable to a reviewer, and wait for their approval before creating the issue (see Draft Review)
-6. **Record design** to the GitHub issue body; the approved draft becomes the body (see Recording the Design)
+5. **Stage the draft for review:** write the converged design to a temp `.md` and link it for the user so it is forwardable to a reviewer; draft-content approval is NOT a write authorization (see Draft Review)
+6. **Confirm the outward write, then record:** present the exact artifact — create a NEW issue titled `<X>`, or update the existing `#N` the user named — and get one explicit per-artifact yes; only then record the design to that issue body (see Recording the Design). In a shared tracker never create or edit without this, and if the user declines, the temp draft is a valid local-only terminal state
 7. **Self-review:** re-read the recorded design for placeholders, contradictions, ambiguity, scope; for a multi-component issue or any newly created Standard or Large issue also dispatch the reviewer subagent (see Self-Review), and surface any resulting change to the user
 8. **Transition to implementation:** write the implementation plan; the **implement** skill ships it
 
@@ -253,3 +263,23 @@ gh issue edit <n> --body-file /tmp/issue-body.md
 ```
 
 Once the plan is in the issue body, the execution phase of branch → code → full gates → commit → PR closing the issue is handled by the **implement** skill.
+
+## Red Flags: STOP
+
+- About to create an issue, PR, or branch, or post a comment, label, or assignment, without an explicit per-artifact yes naming that artifact → STOP. One yes authorizes one named artifact, never a batch.
+- About to record, edit, or comment on an issue this session did not create, or claiming it on author-match alone → STOP. Authorship is not ownership; ask for the number.
+- Treating a design approval or draft-content approval as authorization to write to the tracker → STOP. Content approval is not write authorization; get a separate per-artifact yes.
+- Treating "do it all" or "work in parallel" as authorization to create a batch of issues/PRs or to claim shared work → STOP. The directive sets the goal, not the blast radius.
+- About to create a new issue speculatively, "so there is something to show", before the user said yes → STOP. Keep it local or in chat until an outward write is authorized.
+- Matching an issue to the request by title or topic resemblance → STOP. Similarity is not authorization; confirm the number with the user.
+- Invoking a saved "solo sandbox, skip the ceremony" note in a tracker that may be shared → STOP. That applies only to a confirmed-solo repo; otherwise confirm and do not touch foreign artifacts.
+
+## Rationalizations
+
+| Excuse                                                                                  | Reality                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "The design is approved, so I'll create the issue now"                                  | Content approval is not a write authorization on a shared tracker. Present the exact artifact and get a separate per-artifact yes first.                                |
+| "They said 'do it all' or 'work in parallel', so I'll open the epic and all sub-issues" | A broad directive sets the goal, not the blast radius. One yes authorizes one named artifact, never a batch.                                                            |
+| "I'll just create the issue now so there is something to show"                          | Speculative creation pollutes a shared tracker. Capture the design locally or in chat; create a GitHub artifact only after an explicit per-artifact yes.                |
+| "The matching issue already exists, so I'll reuse and edit it"                          | Never auto-match by title or topic. Confirm the number with the user and that it is unclaimed and yours before editing; resemblance is not authorization.               |
+| "My saved memory says solo sandbox, skip the ceremony"                                  | Saved feedback outranks the skill only when the repo is confirmed solo. In a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts and ask. |
