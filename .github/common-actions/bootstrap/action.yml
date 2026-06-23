@@ -1,5 +1,5 @@
 name: Bootstrap
-description: Setup Node.js and install dependencies via pnpm. Run AFTER actions/checkout — local composite actions cannot replace checkout.
+description: Setup Node.js and install dependencies via pnpm. Run AFTER actions/checkout; local composite actions cannot replace checkout.
 
 inputs:
   node-version:

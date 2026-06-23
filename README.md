@@ -2,13 +2,13 @@
 
 [![skills.sh](https://skills.sh/b/next-friday/next-friday-skills)](https://skills.sh/next-friday/next-friday-skills)
 
-Agent skills for shipping through GitHub like a disciplined team — every change flows **issue → branch → gates → pull request → green CI**.
+Agent skills for shipping through GitHub like a disciplined team. Every change flows **issue → branch → gates → pull request → green CI**.
 
-Coding agents are fast. Fast at building the wrong thing, fast at committing straight to `main`, and fast at declaring "done" while CI burns. These skills fix that without taking over your process: your repo's own templates, title rules, commit style, and gates are **discovered, not assumed** — with graceful fallbacks when they don't exist.
+Coding agents are fast. Fast at building the wrong thing, fast at committing straight to `main`, and fast at declaring "done" while CI burns. These skills fix that without taking over your process: your repo's own templates, title rules, commit style, and gates are **discovered, not assumed**, with graceful fallbacks when they don't exist.
 
 ## What this does for you
 
-New to this? In plain terms: you describe what you want in normal language, and your agent handles the disciplined parts. It asks questions to pin down the design, writes that design where your team can see it, builds it in small reviewed steps, opens a pull request, and waits for the automated checks to pass — instead of charging ahead and calling it "done" too early. You stay in control: nothing ships without your approval, and you do not need to learn any new commands.
+New to this? In plain terms: you describe what you want in normal language, and your agent handles the disciplined parts. It asks questions to pin down the design, writes that design where your team can see it, builds it in small reviewed steps, opens a pull request, and waits for the automated checks to pass, instead of charging ahead and calling it "done" too early. You stay in control: nothing ships without your approval, and you do not need to learn any new commands.
 
 ## Installation
 
@@ -28,7 +28,7 @@ The Next Friday marketplace provides next-friday and future Next Friday plugins 
   /plugin install next-friday@skills
   ```
 
-Then ask your agent to build something. The skills trigger automatically — no commands to learn, no change to how you talk to your agent.
+Then ask your agent to build something. The skills trigger automatically. There are no commands to learn and no change to how you talk to your agent.
 
 ### Any agent (skills.sh)
 
@@ -40,6 +40,8 @@ npx skills add next-friday/next-friday-skills
 
 This copies `blueprint`, `implement`, and `rebut` into your agent's skills directory.
 
+New here? The [Getting Started guide](./docs/getting-started.md) walks through your first issue → pull request → triage cycle end to end.
+
 ## Why These Skills Exist
 
 These skills fix the failure modes that show up again and again when agents ship real software.
@@ -50,15 +52,15 @@ These skills fix the failure modes that show up again and again when agents ship
 >
 > Kent Beck, [Extreme Programming Explained](https://www.amazon.com/Extreme-Programming-Explained-Embrace-Change/dp/0321278658)
 
-**The Problem.** The oldest failure mode in software is misalignment — and agents amplify it, because they start building immediately and optimistically.
+**The Problem.** The oldest failure mode in software is misalignment, and agents amplify it, because they start building immediately and optimistically.
 
-**The Fix** is [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md): a design interview — root context first, then questions batched by dependency level, each with a recommended answer — behind a hard gate, no code until you approve a written design. The "too simple to need a design" excuse is banned; trivial changes just get a proportionally tiny design (2-4 sentences, one approval).
+**The Fix** is [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md): a design interview behind a hard gate. Root context first, then questions batched by dependency level, each with a recommended answer. No code until you approve a written design. The "too simple to need a design" excuse is banned; trivial changes just get a proportionally tiny design of 2-4 sentences and one approval.
 
 ### #2: The Work Left No Trail
 
 **The Problem.** Agent output that lives in a chat scrollback is gone tomorrow. Your team can't review what they can't see, and next month nobody remembers why the code looks like this.
 
-**The Fix**: [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md) records every design where your team already works — a GitHub issue, filled from your repo's issue template. As the design changes, the issue body is rewritten, and GitHub preserves its full edit history. The plan lands on the same issue body. The PR closes it. One thread tells the whole story.
+**The Fix**: [`blueprint`](./plugins/next-friday/skills/blueprint/SKILL.md) records every design where your team already works: a GitHub issue, filled from your repo's issue template. As the design changes, the issue body is rewritten, and GitHub preserves its full edit history. The plan lands on the same issue body. The PR closes it. One thread tells the whole story.
 
 ### #3: The PR Doesn't Actually Merge
 
@@ -68,33 +70,33 @@ These skills fix the failure modes that show up again and again when agents ship
 
 **The Problem.** Local checks passed, but the PR title fails the org's commitlint, no issue is linked, and CI is red. The agent says "done"; the repo says otherwise.
 
-**The Fix** is [`implement`](./plugins/next-friday/skills/implement/SKILL.md): branch from the issue, run every gate the repo defines, open the PR from the repo's template with `Closes #N`, then watch CI to green. Red CI means not done — it fixes the cause, never bypasses the gate.
+**The Fix** is [`implement`](./plugins/next-friday/skills/implement/SKILL.md): branch from the issue, run every gate the repo defines, open the PR from the repo's template with `Closes #N`, then watch CI to green. Red CI means not done. It fixes the cause, never bypasses the gate.
 
 ### #4: The AI Reviewer Was Half Right
 
-**The Problem.** AI code reviewers such as CodeRabbit or Gemini Code Assist post a flood of findings — real bugs mixed with false positives that don't know your repo's lint config or conventions. Applying them blindly breaks the build; dismissing them blindly ships the bug.
+**The Problem.** AI code reviewers such as CodeRabbit or Gemini Code Assist post a flood of findings: real bugs mixed with false positives that don't know your repo's lint config or conventions. Applying them blindly breaks the build; dismissing them blindly ships the bug.
 
-**The Fix** is [`rebut`](./plugins/next-friday/skills/rebut/SKILL.md): verify every finding against the real code, fix the ones that reproduce, refute the false positives with evidence, and reply in each thread marked as automated triage — severity labels don't decide, verification does.
+**The Fix** is [`rebut`](./plugins/next-friday/skills/rebut/SKILL.md): verify every finding against the real code, fix the ones that reproduce, refute the false positives with evidence, and reply in each thread marked as automated triage. Severity labels don't decide, verification does.
 
 ### Summary
 
-These skills condense how disciplined teams actually ship — design review, traceable decisions, gated delivery — into habits your agent applies on every change, scaled to the size of the change.
+These skills condense how disciplined teams actually ship, namely design review, traceable decisions, and gated delivery, into habits your agent applies on every change, scaled to the size of the change.
 
 ## The Basic Workflow
 
-1. **blueprint** — Activates before any code is written. Interviews you through the decision tree, proposes 2-3 approaches, presents the design in reviewable sections, then records it as a GitHub issue and writes the implementation plan in the issue body.
+1. **blueprint**: Activates before any code is written. Interviews you through the decision tree, proposes 2-3 approaches, presents the design in reviewable sections, then records it as a GitHub issue and writes the implementation plan in the issue body.
 
-2. **implement** — Activates when an issue's design and plan are approved ("implement issue #12"). Branches from the issue, works task by task, runs the full gates, opens a templated PR, watches CI to green, then hands off to `rebut` for the AI-review round.
+2. **implement**: Activates when an issue's design and plan are approved, such as "implement issue #12". Branches from the issue, works task by task, runs the full gates, opens a templated PR, watches CI to green, then hands off to `rebut` for the AI-review round.
 
-3. **rebut** — Activates after a push, or whenever an open PR has AI code-review comments. Verifies each finding against the real code, fixes the ones that reproduce, refutes false positives with evidence, and replies in-thread marked as automated triage.
+3. **rebut**: Activates after a push, or whenever an open PR has AI code-review comments. Verifies each finding against the real code, fixes the ones that reproduce, refutes false positives with evidence, and replies in-thread marked as automated triage.
 
-Mandatory workflows, not suggestions — the hard gates are part of the skills.
+Mandatory workflows, not suggestions. The hard gates are part of the skills.
 
 ## Reference
 
-- **[blueprint](./plugins/next-friday/skills/blueprint/SKILL.md)** — Design interview → approved design recorded in a GitHub issue → implementation plan. The default flow, with tiered depth (trivial / standard / large).
-- **[implement](./plugins/next-friday/skills/implement/SKILL.md)** — Approved issue → linked branch → gated commits → templated PR → CI watched to green → handoff to rebut.
-- **[rebut](./plugins/next-friday/skills/rebut/SKILL.md)** — Open PR with AI review comments → verified triage → fixes plus evidence-backed refutals → in-thread replies.
+- **[blueprint](./plugins/next-friday/skills/blueprint/SKILL.md)**: Design interview → approved design recorded in a GitHub issue → implementation plan. The default flow, with tiered depth (trivial / standard / large).
+- **[implement](./plugins/next-friday/skills/implement/SKILL.md)**: Approved issue → linked branch → gated commits → templated PR → CI watched to green → handoff to rebut.
+- **[rebut](./plugins/next-friday/skills/rebut/SKILL.md)**: Open PR with AI review comments → verified triage → fixes plus evidence-backed refutals → in-thread replies.
 
 ## Requirements
 
@@ -116,7 +118,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md). This project follows the [Contributor 
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT, see [LICENSE](./LICENSE).
 
 ## Community
 

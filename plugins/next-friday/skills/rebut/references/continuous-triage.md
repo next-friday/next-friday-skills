@@ -1,8 +1,8 @@
 # Continuous triage across review rounds
 
-The `rebut` skill triages the review round in front of it now, plus any round its own fix-push provokes within the same run. It does **not** watch a pull request over time — a skill is a single agent invocation with no background process, so it cannot wake itself when a reviewer comments tomorrow.
+The `rebut` skill triages the review round in front of it now, plus any round its own fix-push provokes within the same run. It does **not** watch a pull request over time. A skill is a single agent invocation with no background process, so it cannot wake itself when a reviewer comments tomorrow.
 
-To triage every future round automatically until the PR closes, re-invoke the skill from **outside** it. The reliable mechanism is a GitHub Action that runs the agent headless on review events. The template below is a starting point — adapt it to how your team runs the agent in CI.
+To triage every future round automatically until the PR closes, re-invoke the skill from **outside** it. The reliable mechanism is a GitHub Action that runs the agent headless on review events. The template below is a starting point. Adapt it to how your team runs the agent in CI.
 
 ## What you need
 

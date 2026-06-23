@@ -7,9 +7,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Title style — Hybrid Convention
+        ## Title style: Hybrid Convention
 
-        `chore(<scope>): <lowercase description>` — or `docs`, `ci`, `build` when those fit better.
+        `chore(<scope>): <lowercase description>`, or `docs`, `ci`, `build` when those fit better.
 
   - type: textarea
     id: description

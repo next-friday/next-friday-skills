@@ -21,7 +21,7 @@ fi
 case " $allowed " in
   *" $type "*) ;;
   *)
-    echo "Title carries no recognized conventional type — leaving labels unchanged."
+    echo "Title carries no recognized conventional type; leaving labels unchanged."
     exit 0
     ;;
 esac

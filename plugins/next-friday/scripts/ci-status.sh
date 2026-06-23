@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# ci-status.sh <pr> — probe a pull request's checks and classify them
+# ci-status.sh <pr>: probe a pull request's checks and classify them
 # deterministically, so "no checks configured" is never mistaken for a failure.
 # Prints the rows, then a final status line. Exit codes:
-#   0  ci: green    — every check concluded successfully
-#   1  ci: failing  — at least one check failed
-#   2               — bad argument, or checks could not be read (e.g. a transient
-#                     gh/network/auth failure — distinct from "no checks")
-#   3  ci: none     — the PR has no checks configured (not a failure)
-#   4  ci: pending  — checks still running; caller should `gh pr checks <pr> --watch`, then re-probe
+#   0  ci: green    every check concluded successfully
+#   1  ci: failing  at least one check failed
+#   2               bad argument, or checks could not be read (e.g. a transient
+#                     gh/network/auth failure, distinct from "no checks")
+#   3  ci: none     the PR has no checks configured (not a failure)
+#   4  ci: pending  checks still running; caller should `gh pr checks <pr> --watch`, then re-probe
 # Classification reads the state column, not gh's exit code, which varies by
 # gh version. A failing check outranks a pending one. A read failure is never
 # silently treated as "no checks".

@@ -2,7 +2,7 @@
 
 Use this template when dispatching a reviewer subagent to check a recorded implementation plan. It applies to the plan recorded in the GitHub issue body.
 
-**Purpose:** Verify the recorded plan is complete, aligned with the design, and buildable — an engineer can follow it without getting stuck.
+**Purpose:** Verify the recorded plan is complete, aligned with the design, and buildable, so an engineer can follow it without getting stuck.
 
 **Dispatch after:** The implementation plan is recorded in the issue body.
 
@@ -27,7 +27,7 @@ Task tool (general-purpose):
 
     **Only flag issues that would actually stall or misdirect implementation.**
     A task with no Done criterion, a design requirement no task covers, a name
-    used two different ways, or a task too vague to act on — those are issues.
+    used two different ways, or a task too vague to act on; those are issues.
     Wording polish and stylistic preference are not.
 
     Approve unless there are gaps that would lead to the wrong build.

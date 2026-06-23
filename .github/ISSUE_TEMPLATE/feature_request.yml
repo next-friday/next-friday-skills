@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Title style — Hybrid Convention
+        ## Title style: Hybrid Convention
 
         Use the conventional-commit shape: `feat(<scope>): <verb-first outcome>`.
 
