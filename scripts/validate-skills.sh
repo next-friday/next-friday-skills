@@ -52,14 +52,14 @@ for skill in plugins/*/skills/*/SKILL.md; do
     if [ ! -f "$dir/$ref" ]; then
       fail "$skill: references '$ref' but it is missing from $dir"
     fi
-  done < <(grep -oE '[A-Za-z0-9._-]+-prompt\.md' "$skill" | sort -u || true)
+  done < <(grep -oE '(references/)?[A-Za-z0-9._-]+-prompt\.md|references/[A-Za-z0-9._-]+\.md' "$skill" | sort -u || true)
 
   refs=$(grep -oE '[A-Za-z0-9._-]+\.md' "$skill" | sort -u || true)
-  for sibling in "$dir"/*.md; do
+  for sibling in "$dir"/*.md "$dir"/references/*.md; do
     [ -f "$sibling" ] || continue
     sname=$(basename "$sibling")
     [ "$sname" = "SKILL.md" ] && continue
-    printf '%s\n' "$refs" | grep -qxF "$sname" || fail "$skill: sibling '$sname' is never referenced, so it is dead weight"
+    printf '%s\n' "$refs" | grep -qxF "$sname" || fail "$skill: '$sname' is never referenced, so it is dead weight"
   done
 
   skill_root=$(dirname "$(dirname "$dir")")

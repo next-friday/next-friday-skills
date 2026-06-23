@@ -31,12 +31,12 @@ jobs:
         run: |
           VERSION=$(node -p "require('./plugins/next-friday/package.json').version")
           if [ "$VERSION" = "0.0.0" ]; then
-            echo "Version is the 0.0.0 placeholder — not a release, nothing to tag."
+            echo "Version is the 0.0.0 placeholder; not a release, nothing to tag."
             exit 0
           fi
           TAG="v${VERSION}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists — version unchanged, nothing to release."
+            echo "Tag $TAG already exists; version unchanged, nothing to release."
             exit 0
           fi
           git tag "$TAG"

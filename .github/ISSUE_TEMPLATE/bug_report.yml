@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Title style — Hybrid Convention
+        ## Title style: Hybrid Convention
 
         Bug issues use the `fix` type and describe the observable symptom in one line: `fix(<scope>): <symptom>`.
 
@@ -16,7 +16,7 @@ body:
         - `fix(blueprint): interview skips the approval gate on trivial tier`
         - `fix(implement): pr body missing closes reference`
 
-        Prohibited in any title: `+` as shorthand — use `and` or commas.
+        Prohibited in any title: `+` as shorthand; use `and` or commas.
 
   - type: textarea
     id: summary
