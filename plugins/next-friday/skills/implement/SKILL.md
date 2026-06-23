@@ -1,6 +1,6 @@
 ---
 name: implement
-description: "Use when an approved GitHub issue whose design and plan are already agreed is ready to build and ship, or on requests like 'implement issue #N', 'start working on the issue', branching from an issue, or getting the gates or CI green. The execution half that follows the blueprint skill."
+description: "Use when an approved GitHub issue whose design and plan are already agreed is ready to build and ship, or on requests like 'implement issue #N', 'start working on the issue', branching from an issue, or getting the gates or CI green."
 license: MIT
 compatibility: "Requires git, the GitHub CLI (gh) authenticated, and a GitHub remote"
 argument-hint: "[issue-number]"
