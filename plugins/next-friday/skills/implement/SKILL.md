@@ -1,6 +1,6 @@
 ---
 name: implement
-description: "Use when an approved GitHub issue whose design and plan are already agreed is ready to build and ship, or on requests like 'implement issue #N', 'start working on the issue', 'open a PR for issue #N', branch from an issue, get the gates or CI green, or open a pull request from the repo template. The execution half that follows the blueprint skill."
+description: "Use when an approved GitHub issue whose design and plan are already agreed is ready to build and ship, or on requests like 'implement issue #N', 'start working on the issue', branching from an issue, or getting the gates or CI green. The execution half that follows the blueprint skill."
 license: MIT
 compatibility: "Requires git, the GitHub CLI (gh) authenticated, and a GitHub remote"
 argument-hint: "[issue-number]"
@@ -20,6 +20,14 @@ issue (approved design + plan)
                            └→ verify CI green (gh pr checks)
                                 └→ on push, AI reviewers re-review → hand off to rebut → triage → loop until none new
 ```
+
+<HARD-GATE>
+Assume the GitHub tracker is SHARED by parallel agents and people unless the user says otherwise; you are not its sole owner. This binds every step below. Require an issue number the user EXPLICITLY named this session: a bare `/implement` with no number means STOP and ask which issue — never infer it, never pick "the one we were discussing", the highest, the most recent, or the only "ready" one. Before the FIRST outward write — linking or creating a branch via `gh issue develop`, pushing, opening a PR, commenting, labeling, assigning — confirm the artifact is unclaimed (no assignee, no in-flight linked branch by another agent) and get one explicit per-artifact yes for THAT artifact. Never branch, PR, comment, or label on an issue or branch this session did not itself create or was not explicitly handed by number; same-account authorship is not ownership, and title or topic resemblance to the request is not authorization. A topic or feature reference such as "work on what that issue describes" is NOT a number hand-off: require the actual number, named contemporaneously with the implement request and not carried over from an earlier design phase, and an explicitly-named number on a shared tracker still needs the separate unclaimed-and-yours confirmation before the first write. No explicit number, or no per-artifact yes, means STOP.
+</HARD-GATE>
+
+<HARD-GATE>
+Explicit user instructions, CLAUDE.md, and saved feedback always outrank this skill. A saved "solo sandbox, skip the ceremony" note applies ONLY when the current repo is confirmed solo; in a tracker that may be shared, default to the confirm-and-do-not-touch-foreign-artifacts behavior and ask. Confirmed solo means a personal remote owned by the current user with no other assignees or foreign branches, or an explicit user statement that the repo is solo; never self-declare it.
+</HARD-GATE>
 
 <HARD-GATE>
 Do NOT open the PR until every applicable gate passes and every checklist item in the issue/PR template, where one exists, is genuinely done and ticked. A red gate or an unchecked box means the work is not ready.
@@ -48,9 +56,12 @@ Read the actual file and fill every section. If a template contains a checklist,
 
 ### 1. Identify the issue and its plan
 
+**Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the `--filter` package, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop --list`, `pnpm-workspace.yaml`/`turbo.json`, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
+
 ```sh
 "${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"
 gh issue view <n> --comments
+gh issue develop <n> --list
 ```
 
 `preflight.sh` verifies `gh` is authenticated and the repo has a GitHub remote; on a missing prerequisite it prints the fix and exits non-zero.
@@ -58,6 +69,8 @@ gh issue view <n> --comments
 If `gh` is missing or unauthenticated, STOP and tell the user to install it and run `gh auth login`. Do not improvise with raw `git`/`curl`. If the repo has no GitHub remote, STOP and ask how they track work; this skill is GitHub-specific.
 
 Confirm the issue carries an approved design and an implementation plan in the issue body. If the plan is missing, stop and go back to the blueprint skill.
+
+**Confirm it is yours to take.** Read the issue's assignee and the linked-branch list above. If it has an assignee, an in-flight linked branch by another agent, or this session did not create it and the user did not hand you its number, STOP and surface the conflict before any branch or write. Acting on a shared-tracker issue is a claim, not a read.
 
 **Sub-issues:** If the work was split into sub-issues, handle one sub-issue per branch/PR. Don't bundle several sub-issues into one PR.
 
@@ -68,6 +81,8 @@ Check whether a branch is already linked to the issue:
 ```sh
 gh issue develop <n> --list
 ```
+
+**Claim check (shared tracker).** Linking or creating a branch is itself an outward mutation visible to teammates, so do it only after an explicit per-artifact go-ahead. Before `gh issue develop <n> --checkout` on an issue this session did not create, run `gh issue view <n> --json assignees,author,comments` alongside the `--list` above: any assignee other than you, an in-comment claim, or a linked branch you did not create means STOP and confirm with the user that it is unclaimed and yours to take (claim it with `gh issue edit <n> --add-assignee @me` once confirmed). An empty linked-branch list is NOT proof the issue is unclaimed, and an asserted "it is yours" or "no issue exists" is never trusted, so verify it read-only first. Work only on a branch this session created or the user explicitly handed you; on any ownership ambiguity, STOP and ask.
 
 If a linked branch already exists, check it out and continue there rather than recreating it. If a branch with the issue's name exists but isn't linked, check it out anyway; if local and remote have diverged, fetch and reconcile before working. Otherwise create one linked to the issue so GitHub associates them:
 
@@ -172,6 +187,12 @@ gh pr checks <pr-number> --watch                            # wait for checks to
 
 ## Red Flags: STOP
 
+- About to act on an issue the user did not EXPLICITLY name — a bare `/implement`, or one inferred from "the one we were discussing", the highest, the most recent, or the only "ready" issue → STOP. Ask for the explicit `#N`; never auto-select.
+- About to match an issue to the request by title or topic resemblance → STOP. Similarity is not authorization; confirm the number with the user.
+- About to `gh issue develop`, branch, push, PR, comment, or label without an explicit per-artifact yes for THAT artifact → STOP. One yes authorizes one named artifact, never a batch.
+- About to branch, PR, or comment on an issue or branch this session did not create, or treating same-account authorship as ownership → STOP. Verify ownership; authorship is not ownership.
+- About to claim an issue that has an assignee or an in-flight linked branch by another agent → STOP. Surface the collision and ask.
+- A team lead or other authority says "just ship it, stop asking permission" → STOP. Rank adds social pressure, not authorization; the per-artifact confirmation and any earlier scope still bind.
 - About to open a PR with a failing/skipped gate → STOP. Gates must pass for real.
 - About to write the PR body from scratch while `.github/PULL_REQUEST_TEMPLATE.md` exists → STOP. Use the template.
 - About to tick a checklist box whose work isn't done → STOP. Do the work first.
@@ -187,18 +208,24 @@ gh pr checks <pr-number> --watch                            # wait for checks to
 
 ## Rationalizations
 
-| Excuse                                                     | Reality                                                                                                                                                                                                                          |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "Tests are flaky, I'll open the PR anyway"                 | A red gate means not ready. Fix the cause or quarantine explicitly with the reviewer's knowledge.                                                                                                                                |
-| "The PR template is generic, I'll write my own"            | The repo chose that template. Fill it; don't replace it.                                                                                                                                                                         |
-| "I'll tick the checklist to save time"                     | Ticking undone work is lying to the reviewer. Do it, then tick.                                                                                                                                                                  |
-| "`--no-verify` is faster"                                  | Bypassing hooks ships the bug the gate exists to catch.                                                                                                                                                                          |
-| "I'll commit straight to main, it's small"                 | Every change ships via a branch and PR that closes the issue.                                                                                                                                                                    |
-| "The guard hook is just being annoying"                    | A guard hook (blocked push, protected file) is the user's policy. Stop and hand off; never evade.                                                                                                                                |
-| "I'll widen permissions so it stops prompting"             | This skill never weakens permissions or bypasses guards. Friction is the user's choice to change.                                                                                                                                |
+| Excuse | Reality |
+| --- | --- |
+| "Tests are flaky, I'll open the PR anyway" | A red gate means not ready. Fix the cause or quarantine explicitly with the reviewer's knowledge. |
+| "The PR template is generic, I'll write my own" | The repo chose that template. Fill it; don't replace it. |
+| "I'll tick the checklist to save time" | Ticking undone work is lying to the reviewer. Do it, then tick. |
+| "`--no-verify` is faster" | Bypassing hooks ships the bug the gate exists to catch. |
+| "I'll commit straight to main, it's small" | Every change ships via a branch and PR that closes the issue. |
+| "The guard hook is just being annoying" | A guard hook (blocked push, protected file) is the user's policy. Stop and hand off; never evade. |
+| "I'll widen permissions so it stops prompting" | This skill never weakens permissions or bypasses guards. Friction is the user's choice to change. |
 | "They said 'do it all', so I'll create every issue and PR" | "Do it all" sets the goal, not the blast radius. A broad directive never overrides an earlier specific constraint such as local-first, and never turns one approval into a batch. Confirm the named set of outward writes first. |
-| "CI is green, so the PR is done"                           | AI reviewers post their round after the push. Hand it to rebut and clear it before claiming done.                                                                                                                                |
-| "No gate covers this file, so it's fine"                   | No gate means no evidence, not a free pass. Run the file's own syntax or parse check such as `bash -n` or `tsc --noEmit` before committing.                                                                                      |
+| "CI is green, so the PR is done" | AI reviewers post their round after the push. Hand it to rebut and clear it before claiming done. |
+| "No gate covers this file, so it's fine" | No gate means no evidence, not a free pass. Run the file's own syntax or parse check such as `bash -n` or `tsc --noEmit` before committing. |
+| "Bare `/implement` obviously means the issue we just discussed, so I'll run it" | No number means no target. STOP and ask which issue. Inferring the one discussed, the highest, or the only "ready" one is the guessing this skill forbids; picking it is an unauthorized claim on shared work. |
+| "The request matches issue #N's title, so I'll grab it and start" | Title or topic resemblance is not authorization. Ask for the explicit number and confirm #N is unclaimed and yours to take in a shared tracker before any write. |
+| "The issue author is my own account, so it's effectively mine" | Same-account authorship is not ownership in a shared, parallel-agent tracker. Another agent or person may own or be assigned it. Confirm the number with the user; never claim it on author-match alone. |
+| "`gh issue develop` is cheap and reversible, so I'll branch now and confirm before the PR" | Linking or creating a branch is itself a tracker mutation that races other agents. The confirm gate is before the FIRST outward write, not only before the PR. |
+| "The issue already has an approved plan, so I'm cleared to branch it" | A plan in the body is not write authorization on a shared tracker. Confirm the issue is unclaimed and yours, with an explicit per-artifact yes, before the first write. |
+| "A team lead told me to just ship it and stop asking permission" | Rank does not widen the blast radius. A third party urging speed is social pressure, not authorization; the per-artifact confirmation and any earlier scope still bind, whoever is pushing. |
 
 ## Running with fewer prompts, opt-in and the user's choice
 
