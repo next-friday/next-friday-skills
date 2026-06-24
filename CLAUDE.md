@@ -24,12 +24,13 @@ pnpm release
 pnpm validate:versions
 pnpm validate:markdown
 pnpm validate:comments
+pnpm validate:scripts
 pnpm validate:skills
 claude plugin validate .
 claude --plugin-dir ./plugins/next-friday
 ```
 
-`pnpm install` sets up devDependencies and the husky git hooks. `pnpm changeset` records a version bump and changelog entry; `pnpm release` applies the pending changesets and syncs each `plugin.json`. The four `validate:*` commands plus `claude plugin validate .` are the CI gates; run all of them before committing, since CONTRIBUTING.md Step 3 lists them as the pre-commit set. `claude --plugin-dir ./plugins/next-friday` loads the plugin in a local session; `SKILL.md` edits reload instantly, manifest edits need `/reload-plugins`.
+`pnpm install` sets up devDependencies and the husky git hooks. `pnpm changeset` records a version bump and changelog entry; `pnpm release` applies the pending changesets and syncs each `plugin.json`. The five `validate:*` commands plus `claude plugin validate .` are the CI gates; run all of them before committing, since CONTRIBUTING.md Step 3 lists them as the pre-commit set. `claude --plugin-dir ./plugins/next-friday` loads the plugin in a local session; `SKILL.md` edits reload instantly, manifest edits need `/reload-plugins`.
 
 Five gotchas not obvious from the file tree:
 

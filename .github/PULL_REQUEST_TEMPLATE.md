@@ -59,7 +59,7 @@ Pre-merge verification. Tick each item once verified.
 ## Skills (when touched)
 
 - [ ] Frontmatter `description` states triggering conditions only, never the workflow itself
-- [ ] Sibling cross-references still resolve (`blueprint` ↔ `implement`)
+- [ ] Sibling cross-references still resolve across `blueprint`, `implement`, `rebut`
 - [ ] Companion files referenced from the skill exist
 - [ ] Shell examples use `--body-file` for multi-line bodies (inline `--body` breaks quoting)
 
