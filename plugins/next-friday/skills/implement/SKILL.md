@@ -59,7 +59,7 @@ Read the actual file and fill every section. If a template contains a checklist,
 **Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the `--filter` package, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop --list`, `pnpm-workspace.yaml`/`turbo.json`, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
 
 ```sh
-"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"
+"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"
 gh issue view <n> --comments
 gh issue develop <n> --list
 ```
@@ -153,7 +153,7 @@ Stage only the files this issue touched. Never blanket `git add -A`/`git add .`,
 
 ### 6. Open the PR from the repo's template
 
-Print the repo's PR template with `"${CLAUDE_PLUGIN_ROOT}/scripts/pr-template.sh"` and fill every section. It writes the template to stdout, lists the options when a `PULL_REQUEST_TEMPLATE/` directory holds several, and exits 3 with a fallback note when the repo has none; in that case use the no-template Summary / Changes / How to verify body above. Write the body to a temp file, since multi-line bodies break inline `--body` quoting:
+Print the repo's PR template with `"${CLAUDE_SKILL_DIR}/scripts/pr-template.sh"` and fill every section. It writes the template to stdout, lists the options when a `PULL_REQUEST_TEMPLATE/` directory holds several, and exits 3 with a fallback note when the repo has none; in that case use the no-template Summary / Changes / How to verify body above. Write the body to a temp file, since multi-line bodies break inline `--body` quoting:
 
 ```sh
 gh pr create --head <branch> --title "<English title per the repo's title convention>" --body-file /tmp/pr-body.md
@@ -174,7 +174,7 @@ First see whether the PR has any checks at all, then watch only if it does:
 
 ```sh
 gh pr checks <pr-number> --watch                            # wait for checks to settle (exits non-zero if none)
-"${CLAUDE_PLUGIN_ROOT}/scripts/ci-status.sh" <pr-number>    # classify the settled state
+"${CLAUDE_SKILL_DIR}/scripts/ci-status.sh" <pr-number>    # classify the settled state
 ```
 
 `ci-status.sh` prints the rows and a final status line, distinguishing the states by exit code: `ci: green` (0), `ci: failing` (1), a read error (2), `ci: none` (3), `ci: pending` (4).

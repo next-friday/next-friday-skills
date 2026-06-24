@@ -29,6 +29,15 @@ for a refute such as the gate output, the convention, or the line that disproves
 "you're absolutely right" and never a bare dismissal.
 </HARD-GATE>
 
+<HARD-GATE>
+Never claim the round is triaged from the post commands' own output. GitHub's secondary rate limit
+silently drops replies posted back-to-back, so a printed success line is not proof a reply
+persisted. Pace each post and capture the created reply id (`post-reply.sh`), then re-query and
+assert `answered N / N` (`verify-coverage.sh`) before summarizing. While any finding is unanswered,
+the round is NOT done: re-post the missing ones and re-verify. Coverage is proven by the re-query,
+never asserted.
+</HARD-GATE>
+
 ## Why AI reviewers get their own triage
 
 - **Repo-blind.** The bot does not load your `eslint.config`, your `tsconfig`, or your house
@@ -53,7 +62,7 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 ## Preflight
 
 ```sh
-"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"
+"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"
 ```
 
 `preflight.sh` confirms `gh` is authenticated and the repo has a GitHub remote. On a missing prerequisite it prints the fix on stderr and exits non-zero; relay that and stop. Identify the PR: the `[pr-number]` argument, else the PR for the current branch (`gh pr view --json number`).
@@ -61,7 +70,7 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 ## Step 1: Gather every finding
 
 ```sh
-"${CLAUDE_PLUGIN_ROOT}/scripts/gather-review.sh" <pr>
+"${CLAUDE_SKILL_DIR}/scripts/gather-review.sh" <pr>
 ```
 
 `gather-review.sh` prints a `REVIEWS` block holding each review's author, state, and body, and a `COMMENTS` block holding each inline comment's author, `path:line`, `id=<id>`, and body, via `gh`'s built-in `--jq`, so nothing is invented or dropped. List each finding with its author, `path:line`, comment `id` needed to reply, and body. Include the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot, recognizable by the `[bot]` login suffix shown in the gathered output, or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
@@ -108,8 +117,8 @@ so automated triage is never mistaken for the maintainer's own review:
 When the repo has a bot or machine account, post under that identity instead so the author itself is
 non-personal; the attribution line is the fallback for a personal token.
 
-Write the body to a file and post it with `-F body=@<file>`. The attribution line makes the body
-multi-line, which breaks inline `-f body="..."` quoting. A fix reply:
+Write the body to a file. The attribution line makes the body multi-line, which breaks inline
+`-f body="..."` quoting. A fix reply:
 
 ```text
 > 🤖 Automated triage by Claude Code, posted through the maintainer's account, not a personal review.
@@ -125,22 +134,36 @@ A refute states the evidence:
 **rebut** not changing this: <concrete reason, e.g. a repo lint rule requires it; the gate passes>.
 ```
 
+Post each reply with `post-reply.sh`, one finding at a time:
+
 ```sh
-gh api "repos/$OWNER_REPO/pulls/<pr>/comments/<comment_id>/replies" -F body=@/tmp/reply.md
+"${CLAUDE_SKILL_DIR}/scripts/post-reply.sh" <pr> <comment_id> /tmp/reply.md
 ```
+
+`post-reply.sh` paces the post under GitHub's secondary rate limit, then confirms it persisted by
+reading the created reply id back from the API response, retrying with backoff when a post is
+throttled. It prints the reply id and exits 0 on success; exit 1 means the reply was **not** posted
+(do not move on, fix and re-run), exit 2 is a bad argument. Do not hand-roll the raw `gh api
+.../replies` call in a loop: back-to-back posts trip the rate limit and vanish, the exact failure
+this script exists to prevent. One finding, one `post-reply.sh` call, in sequence.
 
 **Reply-only, never Resolve.** Post replies through the API; never click "Resolve conversation". The green Resolve button is the human reviewer's, and it is how they *verify* this skill's work: they read each thread, confirm a reply is present, confirm the summary comment exists, and only then resolve. If the skill resolves, the human cannot tell whether they or the agent closed the thread, the exact confusion that makes them re-check or re-run the triage. This skill's entire output is replies plus one summary comment; the Resolve button stays theirs.
 
 **Leave no thread blank.** Every finding gathered in Step 1 gets a reply: a `FIX` with its SHA, or a `REFUTE` / `INTENTIONAL` / `MINOR` with its reason. A bot comment with no response is indistinguishable from un-triaged work: a human reviewer cannot tell whether the skill ran, so they re-invoke it and the round loops. Silence is never a verdict. Disagreeing with a finding still requires a stated reason, never an empty thread.
 
-## Step 5.5: Re-verify CI, then catch the round your fix-push provoked
+## Step 5.5: Assert coverage, re-verify CI, then catch the round your fix-push provoked
 
-If Step 4 pushed any fix commits, that push re-triggers CI and a fresh AI-review round. Before summarizing:
+Before summarizing:
 
-- **Re-verify CI.** When checks are still settling, wait with `gh pr checks <pr> --watch`, then classify with `"${CLAUDE_PLUGIN_ROOT}/scripts/ci-status.sh" <pr>`: `ci: green` (exit 0) is clear; `ci: failing` (exit 1) blocks, so debug it; `ci: none` (exit 3) means no CI configured, which is NOT a failure, so note it and move on, exactly as the **implement** skill handles it; `ci: pending` (exit 4) means re-run `--watch`, then re-probe; a read error (exit 2) is not "green", so surface it. Confirm green with your own eyes; never assert it without the script's evidence.
-- **Catch the new round.** The fix-push provokes a fresh bot round. Re-run Step 1's gather; if it surfaced new actionable findings, triage them through Steps 2-5, then return to the top of this step. Every push repeats this re-verify and re-gather; the loop ends only when a gather adds nothing new, only acknowledgements, or no comments.
+- **Assert coverage (always).** After posting, re-query the PR and confirm every bot finding got a reply from the triage account:
 
-If Step 4 changed nothing because every finding was REFUTE or INTENTIONAL, there is no new push and no new round, so skip straight to Step 6.
+  ```sh
+  "${CLAUDE_SKILL_DIR}/scripts/verify-coverage.sh" <pr>
+  ```
+
+  It prints one row per finding (`answered` / `MISSING`) then `answered N / M`. Exit 0 means every finding has a reply (the round is covered); exit 1 lists each `MISSING` finding, so re-post those with `post-reply.sh` and re-run until it reports `answered N / N`; exit 2 is a read/argument error, which is not coverage, so surface it. This runs whatever the verdicts were, including an all-REFUTE round where no fix was pushed: a dropped refute reply is as invisible as a dropped fix reply. Never proceed to Step 6 while any finding is `MISSING`.
+- **Re-verify CI.** When checks are still settling, wait with `gh pr checks <pr> --watch`, then classify with `"${CLAUDE_SKILL_DIR}/scripts/ci-status.sh" <pr>`: `ci: green` (exit 0) is clear; `ci: failing` (exit 1) blocks, so debug it; `ci: none` (exit 3) means no CI configured, which is NOT a failure, so note it and move on, exactly as the **implement** skill handles it; `ci: pending` (exit 4) means re-run `--watch`, then re-probe; a read error (exit 2) is not "green", so surface it. Confirm green with your own eyes; never assert it without the script's evidence. If Step 4 changed nothing because every finding was REFUTE or INTENTIONAL, there is no new push, so this CI re-verify and the round-catch below have nothing to re-trigger; the coverage assertion above still runs.
+- **Catch the new round.** The fix-push provokes a fresh bot round, and a **second reviewer** that was still queued at first gather (e.g. one bot posts minutes after another) lands its findings after this pass began. Re-run Step 1's gather; if it surfaced new findings, triage them through Steps 2-5, re-run the coverage assertion, then return to the top of this step. Every push repeats this re-verify and re-gather; the loop ends only when a gather adds nothing new, only acknowledgements, or no comments. A single invocation cannot catch a reviewer that comments after it exits: for any PR that draws **more than one reviewer**, the continuous-triage automation below is the recommended default, not an afterthought.
 
 ## Step 6: Summarize
 
@@ -152,7 +175,7 @@ gh api "repos/$OWNER_REPO/issues/<pr>/comments" -F body=@/tmp/summary.md
 
 It carries the per-finding verdict table mapping finding → FIX / REFUTE / INTENTIONAL / MINOR → evidence: a commit SHA for a fix, a concrete reason for a refute. It also carries the fix commit SHAs and the `ci-status.sh` result from Step 5.5, reported as "CI is green" only when it truly is (`ci: green`, exit 0), or "no CI configured" when the PR has none (`ci: none`). It ends with a clear "these threads are answered and safe to Resolve."
 
-State the coverage explicitly, **"replied to every finding (N of N)"**, so the human's verification is a glance, not an audit. The human reviewer's job is exactly this check: every AI-reviewer finding has a reply that fixes, refutes, or defers it with a reason, and the summary comment exists; once they confirm it, they Resolve.
+State the coverage explicitly, **"replied to every finding (N of N)"**, taken from the `answered N / N` line that `verify-coverage.sh` printed in Step 5.5, never a count done by hand. Post this comment only once that script has reported full coverage; if it still shows any `MISSING`, the round is not done and there is nothing to summarize yet. So the human's verification is a glance, not an audit. The human reviewer's job is exactly this check: every AI-reviewer finding has a reply that fixes, refutes, or defers it with a reason, and the summary comment exists; once they confirm it, they Resolve.
 
 This posted comment is the closure artifact. It covers the **review summaries**, the top-level review bodies that are not inline threads you can reply to, and it gives a human the visible proof the round was triaged, so they do not re-invoke the skill and restart the loop. After posting it, hand the same table back to the caller.
 
@@ -162,6 +185,8 @@ This skill triages the round in front of it now, plus any round your own fix-pus
 
 To triage every future round automatically until the PR closes, re-invoke this skill from **outside** it, not from prose inside it: a GitHub Action on the `pull_request_review`, `pull_request_review_comment`, and `issue_comment` events that runs the agent headless, or an equivalent watch loop. Guard it so the fix-push's own review round cannot re-trigger it forever, and run it under a bot or app token rather than a personal one. See `references/continuous-triage.md` for a starting template.
 
+**For any PR that draws more than one reviewer, treat this automation as the recommended default, not an optional extra.** Reviewers fire asynchronously: one bot can post minutes after another, often after a fix-push, so its findings land after a single manual invocation has already exited and reported done. A one-shot run covers only the reviewers present while it ran; the event-driven re-invocation is what guarantees the later round is triaged at all. Run the skill by hand for a quick single-reviewer pass; wire the automation when a PR is expected to attract a second.
+
 ## Red flags: STOP
 
 | Thought                          | Reality                                                                                                                      |
@@ -170,4 +195,6 @@ To triage every future round automatically until the PR closes, re-invoke this s
 | "Just apply the suggested diff"  | It may break a repo gate the bot can't see. Verify against the gate first.                                                   |
 | "Dismiss it, the bot is noisy"   | A bare dismissal is not a refute. Cite the evidence.                                                                         |
 | "Reply with no marker"           | It reads as the maintainer's own words. Open every reply with the Claude Code attribution line, then the `**rebut**` marker. |
+| "Posts all printed success"      | A printed line is not a persisted reply; the rate limit drops them silently. Re-query with `verify-coverage.sh`.             |
+| "Posting in a loop is faster"    | Back-to-back posts trip the secondary limit and vanish. Pace one at a time via `post-reply.sh`, which confirms each id.      |
 | "Resolve the thread too"         | Resolving is the human's decision; this skill replies only.                                                                  |

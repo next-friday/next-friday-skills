@@ -63,7 +63,7 @@ Creating more than one GitHub artifact in a session — including an epic plus i
 
 You MUST create a task for each of these items and complete them in order. **Trivial tier:** steps 2-4 collapse into the single short design message and step 5's separate temp-`.md` draft is skipped. The 2-4 sentence design posted in chat IS the draft; approving it is not a write authorization, so step 6's separate per-artifact outward-write yes is still required before recording to the issue. Steps 6, 7, and 8 still run, with step 7's self-review a quick re-read rather than a reviewer-subagent pass.
 
-0. **Preflight `gh`:** run `"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"`; if it fails because gh is missing/unauthenticated or there is no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
+0. **Preflight `gh`:** run `"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"`; if it fails because gh is missing/unauthenticated or there is no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
 1. **Explore project context and check for collisions:** read files, docs, recent commits, AND open issues, branches (`gh issue list`, `git branch -a`, and `gh issue develop <n> --list` only when the user named an existing issue to update), and open PRs for in-flight or overlapping work by other agents; surface any conflict to the user before designing or creating anything, and touch no artifact this session did not create
 2. **Interview the decision tree:** resolve root context first, then question relentlessly in dependency order, batching tightly-coupled questions each with a recommended answer, until shared understanding (see Interviewing below)
 3. **Propose 2-3 approaches** with trade-offs and your recommendation
@@ -167,7 +167,7 @@ Before creating the issue, stage the converged design for the user to review:
 
 ### Preflight
 
-Run `"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"` first; it verifies `gh` is authenticated and the repo has a GitHub remote, printing the fix and exiting non-zero otherwise. If it fails, STOP and tell the user. Do NOT silently fall back to writing a local file. Ask them to authenticate or confirm an alternative. If the repo has no GitHub remote such as GitLab, Bitbucket, or plain git, the script flags it; STOP and ask the user how they track work, because this skill is GitHub-specific.
+Run `"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"` first; it verifies `gh` is authenticated and the repo has a GitHub remote, printing the fix and exiting non-zero otherwise. If it fails, STOP and tell the user. Do NOT silently fall back to writing a local file. Ask them to authenticate or confirm an alternative. If the repo has no GitHub remote such as GitLab, Bitbucket, or plain git, the script flags it; STOP and ask the user how they track work, because this skill is GitHub-specific.
 
 ### Title convention: discover, don't invent
 

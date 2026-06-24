@@ -15,6 +15,7 @@ body:
 
         - `fix(blueprint): interview skips the approval gate on trivial tier`
         - `fix(implement): pr body missing closes reference`
+        - `fix(rebut): replies drop silently under the rate limit`
 
         Prohibited in any title: `+` as shorthand; use `and` or commas.
 
@@ -34,6 +35,7 @@ body:
       options:
         - blueprint
         - implement
+        - rebut
         - plugin/marketplace (install, manifest, loading)
         - other
     validations:

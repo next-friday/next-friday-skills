@@ -74,7 +74,7 @@ That is one full cycle: **idea → approved issue → green PR → triaged revie
 First-run friction is almost always one of these:
 
 - **The skill did not trigger.** Phrase the request in terms of building or shipping ("design…", "implement issue #N", "open a PR"). If it still does not catch, name it: "Use blueprint to design this."
-- **`gh` is not authenticated.** blueprint and implement check first and stop early. Run `gh auth status`, then `gh auth login`.
+- **`gh` is not authenticated.** blueprint, implement, and rebut check first and stop early. Run `gh auth status`, then `gh auth login`.
 - **No issue or PR template in your repo.** The skills fall back to a sensible default and keep going. You do not need to create one first.
 - **CI is red.** implement treats that as not done: it reads the failing job and fixes the cause, rather than marking the work complete.
 - **No AI reviewer on the PR.** rebut only has work when a review bot comments. None configured means nothing to triage, and the cycle is still complete at green CI.
