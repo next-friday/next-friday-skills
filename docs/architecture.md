@@ -17,7 +17,7 @@ plugins/next-friday/
 
 **Two install models, and a skill must survive both.** As a plugin, the whole `plugins/next-friday/` tree is copied and `${CLAUDE_PLUGIN_ROOT}` points at its root. As a standalone skill through the `skills` CLI (`npx skills add`), only the directory holding a `SKILL.md` is copied, nothing beside it, and `${CLAUDE_PLUGIN_ROOT}` is never set. So a file a skill references at run time must live inside that skill's own directory. This is why each skill carries its own `scripts/` (see [The script library](#the-script-library)) instead of reaching up to the plugin-root `scripts/`: a path that works only under a plugin install is a dead link for someone who installed standalone, and the reverse.
 
-There is no build step and no test runner. Content is markdown and POSIX shell. The gates are the five `validate:*` scripts plus `claude plugin validate .`.
+There is no build step and no test runner. Content is markdown and portable bash. The gates are the five `validate:*` scripts plus `claude plugin validate .`.
 
 ## The anti-hallucination spine
 
@@ -110,7 +110,7 @@ The skills run in *other people's* repositories. Name only the universal substra
 
 ### Add or change a script
 
-1. Add or edit the canonical copy under `plugins/next-friday/scripts/`. POSIX `bash`, `set -euo pipefail`, `gh --jq` only.
+1. Add or edit the canonical copy under `plugins/next-friday/scripts/`. Portable `bash`, `set -euo pipefail`, `gh --jq` only.
 2. Document the exit-code contract in the header. That is the interface.
 3. `chmod +x` it.
 4. Reference it from the `SKILL.md` as `"${CLAUDE_SKILL_DIR}/scripts/<name>.sh"` and branch on its exit codes.
