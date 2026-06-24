@@ -1,5 +1,12 @@
 # @next-friday/next-friday
 
+## 0.11.3
+
+### Patch Changes
+
+- 103a5a6: Stop `rebut` from silently dropping review replies. The skill posted replies in a tight loop and trusted each post command's own success line, so GitHub's secondary rate limit could drop most replies while the run still reported "all threads answered". Two new scripts back the reply step: `post-reply.sh` paces each post and confirms it persisted by reading the created reply id back from the API response (retrying with backoff when throttled), and `verify-coverage.sh` re-queries the PR after triage to assert every bot finding got a reply from the triage account, printing `answered N / M` and failing when any finding is unanswered. A new HARD-GATE forbids claiming the round is done from post output alone, and the async guidance now makes the continuous-triage automation the recommended default for any PR that draws more than one reviewer.
+- 103a5a6: Ship each skill's helper scripts with the skill so they work under a standalone `skills` CLI install, not only a plugin install. The skills referenced their helpers as `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh` from the plugin root; a standalone install copies only the skill's own directory and never sets `${CLAUDE_PLUGIN_ROOT}`, so every call broke. Helpers are now referenced via `${CLAUDE_SKILL_DIR}/scripts/<name>.sh` (resolves under both install paths) and each skill carries its own `scripts/` directory. The canonical scripts stay the single source at `plugins/next-friday/scripts/`; `scripts/sync-skill-scripts.sh` generates the per-skill copies and the new `validate:scripts` gate fails CI on drift.
+
 ## 0.11.2
 
 ### Patch Changes
