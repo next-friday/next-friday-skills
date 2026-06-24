@@ -62,13 +62,12 @@ for skill in plugins/*/skills/*/SKILL.md; do
     printf '%s\n' "$refs" | grep -qxF "$sname" || fail "$skill: '$sname' is never referenced, so it is dead weight"
   done
 
-  skill_root=$(dirname "$(dirname "$dir")")
   while IFS= read -r rel; do
     [ -n "$rel" ] || continue
-    if [ ! -x "$skill_root/$rel" ]; then
-      fail "$skill: references '$rel' but it is missing or not executable under $skill_root"
+    if [ ! -x "$dir/$rel" ]; then
+      fail "$skill: references '$rel' but it is missing or not executable under $dir"
     fi
-  done < <(grep -oE '\$\{CLAUDE_PLUGIN_ROOT\}/scripts/[A-Za-z0-9._-]+\.sh' "$skill" | sed 's#^\${CLAUDE_PLUGIN_ROOT}/##' | sort -u || true)
+  done < <(grep -oE '\$\{CLAUDE_SKILL_DIR\}/scripts/[A-Za-z0-9._-]+\.sh' "$skill" | sed 's#^\${CLAUDE_SKILL_DIR}/##' | sort -u || true)
 done
 
 for manifest in plugins/*/hooks/hooks.json; do

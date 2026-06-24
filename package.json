@@ -13,6 +13,7 @@
     "validate:versions": "bash scripts/sync-plugin-version.sh && git diff --exit-code -- 'plugins/*/.claude-plugin/plugin.json'",
     "validate:markdown": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
     "validate:comments": "bash scripts/check-no-comments.sh",
+    "validate:scripts": "bash scripts/sync-skill-scripts.sh && ! git status --porcelain | grep -qE 'plugins/.*/skills/.*/scripts/'",
     "validate:skills": "bash scripts/validate-skills.sh"
   },
   "devDependencies": {

@@ -62,7 +62,7 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 ## Preflight
 
 ```sh
-"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh"
+"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"
 ```
 
 `preflight.sh` confirms `gh` is authenticated and the repo has a GitHub remote. On a missing prerequisite it prints the fix on stderr and exits non-zero; relay that and stop. Identify the PR: the `[pr-number]` argument, else the PR for the current branch (`gh pr view --json number`).
@@ -70,7 +70,7 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 ## Step 1: Gather every finding
 
 ```sh
-"${CLAUDE_PLUGIN_ROOT}/scripts/gather-review.sh" <pr>
+"${CLAUDE_SKILL_DIR}/scripts/gather-review.sh" <pr>
 ```
 
 `gather-review.sh` prints a `REVIEWS` block holding each review's author, state, and body, and a `COMMENTS` block holding each inline comment's author, `path:line`, `id=<id>`, and body, via `gh`'s built-in `--jq`, so nothing is invented or dropped. List each finding with its author, `path:line`, comment `id` needed to reply, and body. Include the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot, recognizable by the `[bot]` login suffix shown in the gathered output, or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
@@ -137,7 +137,7 @@ A refute states the evidence:
 Post each reply with `post-reply.sh`, one finding at a time:
 
 ```sh
-"${CLAUDE_PLUGIN_ROOT}/scripts/post-reply.sh" <pr> <comment_id> /tmp/reply.md
+"${CLAUDE_SKILL_DIR}/scripts/post-reply.sh" <pr> <comment_id> /tmp/reply.md
 ```
 
 `post-reply.sh` paces the post under GitHub's secondary rate limit, then confirms it persisted by
@@ -158,11 +158,11 @@ Before summarizing:
 - **Assert coverage (always).** After posting, re-query the PR and confirm every bot finding got a reply from the triage account:
 
   ```sh
-  "${CLAUDE_PLUGIN_ROOT}/scripts/verify-coverage.sh" <pr>
+  "${CLAUDE_SKILL_DIR}/scripts/verify-coverage.sh" <pr>
   ```
 
   It prints one row per finding (`answered` / `MISSING`) then `answered N / M`. Exit 0 means every finding has a reply (the round is covered); exit 1 lists each `MISSING` finding, so re-post those with `post-reply.sh` and re-run until it reports `answered N / N`; exit 2 is a read/argument error, which is not coverage, so surface it. This runs whatever the verdicts were, including an all-REFUTE round where no fix was pushed: a dropped refute reply is as invisible as a dropped fix reply. Never proceed to Step 6 while any finding is `MISSING`.
-- **Re-verify CI.** When checks are still settling, wait with `gh pr checks <pr> --watch`, then classify with `"${CLAUDE_PLUGIN_ROOT}/scripts/ci-status.sh" <pr>`: `ci: green` (exit 0) is clear; `ci: failing` (exit 1) blocks, so debug it; `ci: none` (exit 3) means no CI configured, which is NOT a failure, so note it and move on, exactly as the **implement** skill handles it; `ci: pending` (exit 4) means re-run `--watch`, then re-probe; a read error (exit 2) is not "green", so surface it. Confirm green with your own eyes; never assert it without the script's evidence. If Step 4 changed nothing because every finding was REFUTE or INTENTIONAL, there is no new push, so this CI re-verify and the round-catch below have nothing to re-trigger; the coverage assertion above still runs.
+- **Re-verify CI.** When checks are still settling, wait with `gh pr checks <pr> --watch`, then classify with `"${CLAUDE_SKILL_DIR}/scripts/ci-status.sh" <pr>`: `ci: green` (exit 0) is clear; `ci: failing` (exit 1) blocks, so debug it; `ci: none` (exit 3) means no CI configured, which is NOT a failure, so note it and move on, exactly as the **implement** skill handles it; `ci: pending` (exit 4) means re-run `--watch`, then re-probe; a read error (exit 2) is not "green", so surface it. Confirm green with your own eyes; never assert it without the script's evidence. If Step 4 changed nothing because every finding was REFUTE or INTENTIONAL, there is no new push, so this CI re-verify and the round-catch below have nothing to re-trigger; the coverage assertion above still runs.
 - **Catch the new round.** The fix-push provokes a fresh bot round, and a **second reviewer** that was still queued at first gather (e.g. one bot posts minutes after another) lands its findings after this pass began. Re-run Step 1's gather; if it surfaced new findings, triage them through Steps 2-5, re-run the coverage assertion, then return to the top of this step. Every push repeats this re-verify and re-gather; the loop ends only when a gather adds nothing new, only acknowledgements, or no comments. A single invocation cannot catch a reviewer that comments after it exits: for any PR that draws **more than one reviewer**, the continuous-triage automation below is the recommended default, not an afterthought.
 
 ## Step 6: Summarize

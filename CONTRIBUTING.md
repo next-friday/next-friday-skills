@@ -101,6 +101,7 @@ Before committing, run the same checks CI will run:
 pnpm validate:markdown   # markdown is clean
 pnpm validate:comments   # no prose code comments
 pnpm validate:versions   # plugin.json version is in sync
+pnpm validate:scripts    # per-skill scripts/ match the canonical source
 pnpm validate:skills     # skill name, description, and refs resolve
 claude plugin validate . # manifests and skill frontmatter are valid
 ```
