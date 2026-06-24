@@ -36,7 +36,7 @@ attempts="${REBUT_POST_ATTEMPTS:-5}"
 
 reply_id=""
 delay="$pace"
-for attempt in $(seq 1 "$attempts"); do
+for ((attempt = 1; attempt <= attempts; attempt++)); do
   sleep "$delay"
   set +e
   out=$(gh api "repos/$owner_repo/pulls/$pr/comments/$comment_id/replies" -F body=@"$body_file" --jq .id 2>&1)
