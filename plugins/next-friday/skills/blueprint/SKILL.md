@@ -239,7 +239,7 @@ Write the plan at **task altitude**: state what each task does, which files it t
 
 **File map first.** Before decomposing, list every file to create or modify with its single responsibility. Files that change together live together; split by responsibility, not by technical layer.
 
-When a task renames or moves a file, the file map must also list whatever still references the old path. A rename leaves stale references behind, in build, lint, type-check, test, and CI config, in import or include statements, and in docs, that pass locally and surface only later, often at push or in CI, one gate at a time. So while planning, search the repo for the old path and add every file that still holds it to the rename task, so the references move in the same change rather than being discovered gate by gate.
+When a task renames or moves a file, the file map must also list whatever still references the old path. A rename leaves stale references behind, in build, lint, type-check, test, and CI config, in import or include statements, and in docs, that pass locally and surface only later, often at push or in CI, one gate at a time. So while planning, search the repo for the old path (e.g. `git grep`, since git is the one guaranteed dependency) and add every file that still holds it to the rename task, so the references move in the same change rather than being discovered gate by gate.
 
 **Right-size each task.** A task is the smallest unit that carries its own test cycle and is worth a fresh reviewer's gate. Fold setup, config, scaffolding, and docs into the task whose deliverable needs them; split only where a reviewer could reject one task while approving its neighbor.
 
