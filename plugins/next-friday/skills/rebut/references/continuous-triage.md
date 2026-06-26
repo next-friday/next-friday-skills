@@ -55,6 +55,9 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+          # The app's own login, so verify-coverage.sh can match its replies:
+          # `gh api user` 403s under an App token, so it cannot derive this itself.
+          REBUT_TRIAGE_LOGIN: 'YOUR_TRIAGE_APP[bot]'
         run: |
           # Put the working tree on the PR head so any fix-push targets the PR branch, not the default branch.
           gh pr checkout "$PR"
