@@ -172,7 +172,7 @@ Run `"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"` first; it verifies `gh` is auth
 
 ### Title convention: discover, don't invent
 
-Before titling the issue, check whether the repo enforces a convention: look for an issue-title or PR-title validation workflow in `.github/workflows/`, a commitlint config, or a documented rule in `CONTRIBUTING`. If a conventional-commit-style scheme is enforced, commonly `<type>(<scope>): <lowercase description>` with a defined type enum, issue titles MUST follow it. Otherwise mirror the repo's existing commit convention from `git log`; a plain descriptive English title is the last resort. Discover the convention by reading the repo; never assume one repo's scheme applies to another.
+Before titling the issue, check whether the repo enforces a convention: look for an issue-title or PR-title validation workflow in `.github/workflows/`, a commit-message lint config (e.g. commitlint), or a documented rule in `CONTRIBUTING`. If a conventional-commit-style scheme is enforced, commonly `<type>(<scope>): <lowercase description>` with a defined type enum, issue titles MUST follow it. Otherwise mirror the repo's existing commit convention from `git log`; a plain descriptive English title is the last resort. Discover the convention by reading the repo; never assume one repo's scheme applies to another.
 
 ### Create vs. update: ASK, don't guess
 

@@ -14,7 +14,7 @@ Take an approved GitHub issue and deliver it: branch → code → gates → PR �
 issue (approved design + plan)
   └→ branch (from the issue)
        └→ write code (task by task, TDD)
-            └→ run FULL gates (lint, types, tests, build)
+            └→ run FULL gates (whichever the repo has: lint, types, tests, build)
                  └→ commit & push
                       └→ open PR from .github template (Closes #issue)
                            └→ verify CI green (gh pr checks)
@@ -56,7 +56,7 @@ Read the actual file and fill every section. If a template contains a checklist,
 
 ### 1. Identify the issue and its plan
 
-**Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the `--filter` package, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop --list`, `pnpm-workspace.yaml`/`turbo.json`, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
+**Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the owning package or target, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop --list`, the repo's workspace or monorepo config in whatever form it takes, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
 
 ```sh
 "${CLAUDE_SKILL_DIR}/scripts/preflight.sh"
@@ -112,12 +112,12 @@ Work the plan's tasks in dependency order, committing frequently and keeping cha
 
 ### 4. Run the FULL gates before committing the final state
 
-Discover the repo's gates from where the changed code lives, not just the repo root, and don't assume. In a monorepo the lint/type/test/build scripts often live in the sub-package that owns the files this issue touched, or in a workspace runner such as `turbo.json`, `nx.json`, or `pnpm-workspace.yaml`, not the root `package.json`. Identify the owning package and run its gates through the repo's task runner (e.g. `turbo run lint --filter=<pkg>`, `pnpm --filter <pkg> test`, or the package's local scripts). A root-level script may be absent, run nothing for that package, or falsely pass, so confirm the gate actually exercised your changes before trusting a green result. Run all gates that apply and make them pass:
+Discover the repo's gates from where the changed code lives, not just the repo root, and don't assume. In a monorepo the gate scripts often live in the sub-package that owns the files this issue touched, or in a workspace or monorepo config, not the repo's root manifest. That config takes many forms, such as `turbo.json` or `pnpm-workspace.yaml` for Node, a Cargo or Go workspace, or a Gradle or Bazel build. Identify the owning package and run its gates through the repo's task runner, whatever it is (e.g. `turbo run lint --filter=<pkg>` or `pnpm --filter <pkg> test` for Node, `cargo test -p <pkg>`, `go test ./...`, a `make` or `just` target, or the package's local scripts). A root-level script may be absent, run nothing for that package, or falsely pass, so confirm the gate actually exercised your changes before trusting a green result. Run all gates that apply and make them pass:
 
-- Lint
-- Type-check
+- Lint, if the repo has a linter
+- Type-check, if the language is typed
 - Tests, running a single test while iterating and the full suite before the PR
-- Build
+- Build, if the project has a build step
 
 A failing gate blocks the PR. Fix the cause; do not skip, disable, or `--no-verify` around a gate to make it pass.
 
@@ -164,7 +164,7 @@ gh pr create --head <branch> --title "<English title per the repo's title conven
 ```
 
 - **Always pass `--head <branch>` explicitly.** Without it, `gh` infers the currently checked-out branch, so in a session with more than one active branch the PR silently attaches to the wrong one. **From a fork**, qualify it as `--head <fork-owner>:<branch>` so `gh` opens the PR cross-repo into the upstream.
-- **Title follows the repo's enforced convention.** Check for a pr-title validation workflow and the repo's commitlint config; discover the rule by reading the repo, never assume another repo's scheme. A common rule set is conventional `type(scope): subject` validated by commitlint, and **no `#N` in the title**, because squash-merge appends `(#PR)` and an issue ref in the title duplicates on the default branch. Issue refs go in the body only.
+- **Title follows the repo's enforced convention.** Check for a pr-title validation workflow and any commit-message lint config the repo has (e.g. commitlint); discover the rule by reading the repo, never assume another repo's scheme. A common rule set is conventional `type(scope): subject` enforced by such a linter, and **no `#N` in the title**, because squash-merge appends `(#PR)` and an issue ref in the title duplicates on the default branch. Issue refs go in the body only.
 - **If PR creation is blocked** by a hook or policy: STOP, exactly as with a blocked push. Do not force or reroute. Report what was refused and hand off to the user to open the PR.
 - Body MUST include `Closes #<n>` so merging closes the issue.
 - Labels: only apply ones that already exist (check `gh label list`). Reviewers: determine from CODEOWNERS or ask the user, never guess. **On a fork you lack write access**, so skip the label/reviewer steps; the maintainer applies them.

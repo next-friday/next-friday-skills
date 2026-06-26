@@ -14,7 +14,7 @@ evidence, and reply in each thread, marked as automated triage. The human still 
 
 This is the counterpart to human review, not a copy of it. AI reviewers such as CodeRabbit or Gemini
 Code Assist post **far more** findings, mix real bugs with false positives, and are **repo-blind**.
-They do not know your custom lint config, conventions, or tooling, so they flag
+They do not know your repo's local config, conventions, or tooling, so they flag
 correct-for-your-repo patterns as bugs, confidently. **A bot's severity is not its correctness**:
 a `CRITICAL` can be a false positive, and a nit can hide a real bug.
 
@@ -40,11 +40,11 @@ never asserted.
 
 ## Why AI reviewers get their own triage
 
-- **Repo-blind.** The bot does not load your `eslint.config`, your `tsconfig`, or your house
-  rules. It will flag a pattern your own tooling REQUIRES. Real example: a reviewer marked
-  `meta.defaultOptions` as CRITICAL "wrong", but the repo's `require-meta-default-options` lint
-  forces it. Applying the suggestion would have broken the build. Blind-apply is as dangerous as
-  blind-dismiss.
+- **Repo-blind.** The bot does not load your repo's local config — a linter, formatter, or
+  type-checker config, whatever your stack uses — or your house rules. It will flag a pattern your
+  own tooling REQUIRES. Real example (an ESLint repo): a reviewer marked `meta.defaultOptions` as
+  CRITICAL "wrong", but the repo's `require-meta-default-options` lint rule forces it. Applying the
+  suggestion would have broken that build. Blind-apply is as dangerous as blind-dismiss.
 - **High false-positive rate.** Many findings are speculative or style-only. Some are real bugs
   the human missed. The job is to separate them with evidence, not vibes.
 - **Confidently wrong.** Severity labels are heuristics. Verify a `CRITICAL` the same as a nit.
@@ -83,8 +83,8 @@ For each finding, answer two questions against the **current** code, not the bot
 
 1. **Does the problem reproduce?** Open the file at the line. Trace the logic. Construct the input
    the bot describes and check the actual behavior. If it is a bug, it must be demonstrable.
-2. **Is the suggestion correct for THIS repo?** Run the relevant gate (lint, type-check, test). Check
-   the documented convention. A fix that passes the bot but fails a repo gate is wrong here.
+2. **Is the suggestion correct for THIS repo?** Run the relevant gate the repo defines (its linter,
+   type-checker, or tests, whichever exist). Check the documented convention. A fix that passes the bot but fails a repo gate is wrong here.
 
 Change one thing at a time and re-verify. Do not batch.
 

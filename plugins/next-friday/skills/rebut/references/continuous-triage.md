@@ -58,7 +58,8 @@ jobs:
         run: |
           # Put the working tree on the PR head so any fix-push targets the PR branch, not the default branch.
           gh pr checkout "$PR"
-          # Install the plugin into the CI agent, then invoke rebut headless on this PR.
+          # Install the plugin into the CI agent via your agent's documented method, then invoke rebut headless on this PR.
+          # (npx shown for a Node runner; use your stack's equivalent install step)
           npx -y skills add next-friday/next-friday-skills
           claude -p "Use the rebut skill to triage the latest review round on PR #${PR}."
 ```
