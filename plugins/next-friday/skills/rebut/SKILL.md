@@ -107,7 +107,7 @@ Change one thing at a time and re-verify. Do not batch.
   **maintainer's** account, the same account that owns the PR and posts the replies. A per-finding
   push turns one review cycle into several: each push re-runs CI and re-triggers every bot, so five
   fixes become five CI runs and five re-review waves. One commit per round is one CI run and one
-  re-review wave. Capture that single SHA; every fix reply in Step 5 cites it. If that push is rejected as non-fast-forward because the remote branch moved on (a release bot's bump or a PR "Update branch" merge added commits during the round), recover, do not stop: `git fetch` then `git rebase origin/<branch>`, re-run the gates, and push again, never `--force`.
+  re-review wave. Capture that single SHA; every fix reply in Step 5 cites it. If that push is rejected as non-fast-forward because the remote branch moved on (a release bot's bump or a PR "Update branch" merge added commits during the round), recover, do not stop: `git fetch` then `git rebase origin/<branch>`, re-run the gates, and push again, never `--force`; the rebase rewrites the commit, so re-capture the new SHA and cite that one in the Step 5 replies, not the stale pre-rebase one.
 
 ## Step 5: Reply in each thread
 
