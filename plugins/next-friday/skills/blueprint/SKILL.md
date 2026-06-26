@@ -250,7 +250,7 @@ Write the plan at **task altitude**: state what each task does, which files it t
 - `**Tech Stack:**` the key technologies.
 - a line naming the **implement** skill as the executor, with `- [ ]` checkbox steps.
 
-**File map first.** Before decomposing, list every file to create or modify with its single responsibility. Files that change together live together; split by responsibility, not by technical layer.
+**File map first, as guidance not gospel.** Before decomposing, list every file to create or modify with its single responsibility. Files that change together live together; split by responsibility, not by technical layer. The map orients the implementer; it is not the definition of done — paths move between design and build, so a task's Done is its observable behavior, not "edited line 42 of X".
 
 When a task renames or moves a file, the file map must also list whatever still references the old path. A rename leaves stale references behind, in build, lint, type-check, test, and CI config, in import or include statements, and in docs, that pass locally and surface only later, often at push or in CI, one gate at a time. So while planning, search the repo for the old path (e.g. `git grep`, since git is the one guaranteed dependency) and add every file that still holds it to the rename task, so the references move in the same change rather than being discovered gate by gate.
 
@@ -260,7 +260,7 @@ When a task renames or moves a file, the file map must also list whatever still 
 
 - a title and a `**Files:**` block (Create / Modify `path:lines` / Test);
 - where the task has seams, a **Consumes / Produces** line naming the exact signatures it takes from earlier tasks and the names/types later tasks rely on, so an implementer seeing only this task learns the neighboring contracts here;
-- the task's intent, an explicit **Done** criterion such as a passing gate, a green test, or an observable behavior, and the **Verification** that proves it: the exact command and its expected result;
+- the task's intent, an explicit **Done** criterion stated as an observable behavior or contract — a passing gate, a green test, an outcome a command can check — that stays true even if a file or line moves, and the **Verification** that proves it: the exact command and its expected result;
 - for code work, the behavior to test and the key names/signatures it introduces. The test-first code is written during implementation (the implement skill enforces it); a full code sketch appears only under the policy above.
 
 **No placeholders.** These are plan failures, never write them: "TBD/TODO/implement later"; "add appropriate error handling / handle edge cases" without saying what; "write tests for the above" without naming them; "similar to Task N" instead of stating it directly; references to types or functions no task defines. Every task names concrete files and a checkable Done.

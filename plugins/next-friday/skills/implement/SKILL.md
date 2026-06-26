@@ -121,11 +121,14 @@ Discover the repo's gates from where the changed code lives, not just the repo r
 
 A failing gate blocks the PR. Fix the cause; do not skip, disable, or `--no-verify` around a gate to make it pass.
 
-**When a gate, or later a CI check, fails, debug by root cause and don't flail:**
+**When a gate, or later a CI check, fails, debug by method — do not guess-and-retry:**
 
-- Investigate before touching anything: read the actual error and find the cause. No guess-and-retry.
-- Change ONE thing at a time and re-run. A burst of simultaneous changes hides which one mattered.
-- **After 3 failed fixes, STOP.** Repeated failure, especially surfacing somewhere new each time, means the approach or the plan is wrong, not that fix #4 is around the corner. Step back, question the design, and raise it with the user instead of guessing again.
+- **Reproduce it.** Read the actual error and run the failing gate yourself; do not work from a remembered or assumed failure. If you cannot reproduce a bug on command, you cannot prove you fixed it.
+- **Make it fail reliably.** The feedback loop is the real work: get to a single command that fails now and will pass once fixed. Until you have it, you are guessing.
+- **Isolate by one variable.** Change ONE thing and re-run; a burst of simultaneous changes hides which one mattered. Bisect the diff or the input to localize the cause.
+- **Form one falsifiable hypothesis before touching code:** "the cause is X because Y", and then test that prediction. A hypothesis you cannot state is a vibe — sharpen it or discard it.
+- **Fix the root cause, not the symptom.** A guard added only where the error surfaced leaves every sibling path broken; fix it where all paths route through.
+- **After ~3 non-converging attempts, STOP.** Repeated failure, especially surfacing somewhere new each time, means the approach or the plan is wrong, not that fix #4 is around the corner. Step back, question the design, and raise it with the user instead of guessing again.
 
 **A file the repo's own gates don't cover is still unverified, not verified-by-default.** For every file the diff touches that no repo gate exercises, run the cheapest language-appropriate loadability check before committing and read its result this turn. Use `bash -n` or `shellcheck` for shell, a parse for JSON and YAML, `tsc --noEmit` for TypeScript the build skips, and `py_compile` for Python. Only a whole gate the repo genuinely lacks, such as no test setup yet, is exempt; state that absence explicitly in the PR body instead of skipping silently.
 
@@ -232,6 +235,9 @@ gh pr checks <pr-number> --watch                            # wait for checks to
 | "`gh issue develop` is cheap and reversible, so I'll branch now and confirm before the PR" | Linking or creating a branch is itself a tracker mutation that races other agents. The confirm gate is before the FIRST outward write, not only before the PR. |
 | "The issue already has an approved plan, so I'm cleared to branch it" | A plan in the body is not write authorization on a shared tracker. Confirm the issue is unclaimed and yours, with an explicit per-artifact yes, before the first write. |
 | "A team lead told me to just ship it and stop asking permission" | Rank does not widen the blast radius. A third party urging speed is social pressure, not authorization; the per-artifact confirmation and any earlier scope still bind, whoever is pushing. |
+| "Lint is clean, so the code is fine" | One syntax error makes the linter bail and under-report, hiding every other finding behind a green count. Parse-check the file (`tsc --noEmit`, `bash -n`, the language's equivalent) and confirm it parses before trusting a lint count. |
+| "I'll run the autofixer to clear the lint fast" | A blanket autofix on a non-trivial logic file can rewrite it into a syntax error and inject review-bait such as empty doc blocks. Fix logic by hand, scoped to the finding; reserve autofix for mechanical reformatting. |
+| "The push was rejected, I'll `--force` it" | A non-fast-forward rejection means the remote moved (a teammate, a release bot, an "Update branch" merge), not that your push is stuck. `git fetch` and rebase onto the updated tip, then push; `--force` discards their commits. |
 
 ## Running with fewer prompts, opt-in and the user's choice
 
