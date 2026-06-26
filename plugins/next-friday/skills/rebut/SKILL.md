@@ -20,7 +20,7 @@ a `CRITICAL` can be a false positive, and a nit can hide a real bug.
 
 <HARD-GATE>
 Never apply a suggestion and never refute one without first verifying the finding against the
-CURRENT code. Reproduce the claim, or run the gate, or read the convention, then decide.
+CURRENT code — the verification discipline in `${CLAUDE_SKILL_DIR}/references/verification.md` binds this. Reproduce the claim, or run the gate, or read the convention, then decide.
 </HARD-GATE>
 
 <HARD-GATE>
@@ -81,8 +81,8 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 
 For each finding, answer two questions against the **current** code, not the bot's framing:
 
-1. **Does the problem reproduce?** Open the file at the line. Trace the logic. Construct the input
-   the bot describes and check the actual behavior. If it is a bug, it must be demonstrable.
+1. **Does the problem reproduce?** Reproduce it as `${CLAUDE_SKILL_DIR}/references/debugging.md` describes: open the file at the line, trace the logic, construct the input
+   the bot describes, and check the actual behavior. If it is a bug, it must be demonstrable.
 2. **Is the suggestion correct for THIS repo?** Run the relevant gate the repo defines (its linter,
    type-checker, or tests, whichever exist). Check the documented convention. A fix that passes the bot but fails a repo gate is wrong here.
 

@@ -22,11 +22,11 @@ issue (approved design + plan)
 ```
 
 <HARD-GATE>
-Assume the GitHub tracker is SHARED by parallel agents and people unless the user says otherwise; you are not its sole owner. This binds every step below. Require an issue number the user EXPLICITLY named this session: a bare `/implement` with no number means STOP and ask which issue — never infer it, never pick "the one we were discussing", the highest, the most recent, or the only "ready" one. Before the FIRST outward write — linking or creating a branch via `gh issue develop`, pushing, opening a PR, commenting, labeling, assigning — confirm the artifact is unclaimed (no assignee, no in-flight linked branch by another agent) and get one explicit per-artifact yes for THAT artifact. Never branch, PR, comment, or label on an issue or branch this session did not itself create or was not explicitly handed by number; same-account authorship is not ownership, and title or topic resemblance to the request is not authorization. A topic or feature reference such as "work on what that issue describes" is NOT a number hand-off: require the actual number. An issue this same session created via blueprint counts as explicitly named (the session opened it, so it is a proven hand-off, not an inference), but a number merely carried over by guess (the highest, the most recent, the only "ready" one, or "the one we were discussing") never does. An explicitly-named number on a shared tracker still needs the separate unclaimed-and-yours confirmation before the first write. No explicit number, or no per-artifact yes, means STOP.
+This skill writes to a SHARED GitHub tracker; the per-artifact authorization, no-foreign-artifact, and precedence-and-scope rules in `${CLAUDE_SKILL_DIR}/references/shared-tracker-safety.md` bind every outward write here — read it. On top of those shared rules, implement has two gates of its own. **The number gate:** require an issue number the user EXPLICITLY named this session. A bare `/implement` with no number means STOP and ask which issue; never infer it, never pick "the one we were discussing", the highest, the most recent, or the only "ready" one, and a topic or feature reference such as "work on what that issue describes" is NOT a number hand-off. An issue this same session created via blueprint counts as explicitly named — the session opened it, a proven hand-off, not an inference — but a number merely carried over by guess never does. **The claim check:** before the FIRST outward write — linking or creating a branch via `gh issue develop`, pushing, opening a PR, commenting, labeling, assigning — confirm the artifact is unclaimed (no assignee, no in-flight linked branch by another agent) and get the per-artifact yes; an empty linked-branch list is not proof, and an asserted "it's yours" is never trusted. No explicit number, or no per-artifact yes, means STOP.
 </HARD-GATE>
 
 <HARD-GATE>
-Explicit user instructions, CLAUDE.md, and saved feedback always outrank this skill. A saved "solo sandbox, skip the ceremony" note applies ONLY when the current repo is confirmed solo; in a tracker that may be shared, default to the confirm-and-do-not-touch-foreign-artifacts behavior and ask. Confirmed solo means a personal remote owned by the current user with no other assignees or foreign branches, or an explicit user statement that the repo is solo; never self-declare it.
+A saved "solo sandbox, skip the ceremony" note (the precedence-and-scope rule in `${CLAUDE_SKILL_DIR}/references/shared-tracker-safety.md`) applies ONLY when the current repo is confirmed solo: a personal remote owned by the current user with no other assignees or foreign branches, or an explicit user statement that the repo is solo. Never self-declare it; in a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts and ask.
 </HARD-GATE>
 
 <HARD-GATE>
@@ -34,7 +34,7 @@ Do NOT open the PR until every applicable gate passes and every checklist item i
 </HARD-GATE>
 
 <HARD-GATE>
-NO COMPLETION CLAIM WITHOUT FRESH VERIFICATION EVIDENCE. Before claiming a gate passed, the build is green, or the work is done: run the exact command in this turn, read its full output and exit code, and only then claim it. If you have not run the command in this message, you cannot say it passes. Ban "should pass", "looks right", "seems fine" before the evidence. A regression test is proven only red-green: revert the fix, watch the test fail, restore it.
+NO COMPLETION CLAIM WITHOUT FRESH VERIFICATION EVIDENCE — the verification discipline in `${CLAUDE_SKILL_DIR}/references/verification.md` binds every claim here. Before claiming a gate passed, the build is green, or the work is done: run the exact command in this turn, read its full output and exit code, and only then claim it. If you have not run the command in this message, you cannot say it passes. Ban "should pass", "looks right", "seems fine" before the evidence. A regression test is proven only red-green: revert the fix, watch the test fail, restore it.
 </HARD-GATE>
 
 ## Language Rule
@@ -121,14 +121,7 @@ Discover the repo's gates from where the changed code lives, not just the repo r
 
 A failing gate blocks the PR. Fix the cause; do not skip, disable, or `--no-verify` around a gate to make it pass.
 
-**When a gate, or later a CI check, fails, debug by method — do not guess-and-retry:**
-
-- **Reproduce it.** Read the actual error and run the failing gate yourself; do not work from a remembered or assumed failure. If you cannot reproduce a bug on command, you cannot prove you fixed it.
-- **Make it fail reliably.** The feedback loop is the real work: get to a single command that fails now and will pass once fixed. Until you have it, you are guessing.
-- **Isolate by one variable.** Change ONE thing and re-run; a burst of simultaneous changes hides which one mattered. Bisect the diff or the input to localize the cause.
-- **Form one falsifiable hypothesis before touching code:** "the cause is X because Y", and then test that prediction. A hypothesis you cannot state is a vibe — sharpen it or discard it.
-- **Fix the root cause, not the symptom.** A guard added only where the error surfaced leaves every sibling path broken; fix it where all paths route through.
-- **After ~3 non-converging attempts, STOP.** Repeated failure, especially surfacing somewhere new each time, means the approach or the plan is wrong, not that fix #4 is around the corner. Step back, question the design, and raise it with the user instead of guessing again.
+**When a gate, or later a CI check, fails, debug by method, not guess-and-retry.** Follow the discipline in `${CLAUDE_SKILL_DIR}/references/debugging.md`: reproduce, make it fail reliably, isolate by one variable, form one falsifiable hypothesis before touching code, fix the root cause not the symptom, and stop after about three non-converging attempts. Here the failure to reproduce is the gate or CI command itself — run it yourself and read its output before changing anything; a non-converging streak means the approach or the plan is wrong, so step back and raise it with the user rather than trying fix #4.
 
 **A file the repo's own gates don't cover is still unverified, not verified-by-default.** For every file the diff touches that no repo gate exercises, run the cheapest language-appropriate loadability check before committing and read its result this turn. Use `bash -n` or `shellcheck` for shell, a parse for JSON and YAML, `tsc --noEmit` for TypeScript the build skips, and `py_compile` for Python. Only a whole gate the repo genuinely lacks, such as no test setup yet, is exempt; state that absence explicitly in the PR body instead of skipping silently.
 
