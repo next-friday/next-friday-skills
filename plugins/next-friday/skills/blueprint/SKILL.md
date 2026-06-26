@@ -243,6 +243,8 @@ After the user approves, write the implementation plan and record it in the **is
 
 Write the plan at **task altitude**: state what each task does, which files it touches, and how it's proven. Derivable code is produced test-first in the PR, not pre-baked into the issue, so the body stays readable. **Include a full code sketch only** where exact code pins something a signature or prose cannot: an ordering that must not change, an exact data shape, a hard algorithm, or a public-API surface. Otherwise state the contract, not the code.
 
+**A Trivial-tier plan is one line.** For a Trivial change, the plan is its Done criterion plus the Verification command that proves it — no Goal/Architecture/Tech-Stack header, no file map, no task list. That single line IS the plan; the implement skill accepts it and does not treat it as missing.
+
 **Plan header.** Open with:
 
 - `**Goal:**` one sentence on what this builds.
