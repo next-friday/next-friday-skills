@@ -27,13 +27,13 @@ combined=$(gh pr checks "$pr" 2>&1)
 code=$?
 set -e
 
-if printf '%s\n' "$combined" | grep -qiE 'no checks reported|no checks on'; then
-  echo "ci: none"
-  exit 3
-fi
-
 rows=$(printf '%s\n' "$combined" | awk -F'\t' 'NF >= 2 { print }')
 if [ -z "$rows" ]; then
+  # No data rows: distinguish gh's "no checks" message from a transient read error.
+  if printf '%s\n' "$combined" | grep -qiE 'no checks reported|no checks on'; then
+    echo "ci: none"
+    exit 3
+  fi
   echo "ci-status: could not read checks for PR $pr (gh exited $code):" >&2
   printf '%s\n' "$combined" >&2
   exit 2

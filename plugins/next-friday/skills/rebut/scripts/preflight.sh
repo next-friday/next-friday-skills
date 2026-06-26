@@ -26,7 +26,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! git remote -v | grep -q 'github\.com'; then
+if ! git remote -v | grep -qE '[@/]github\.com[:/]'; then
   echo "preflight: no GitHub remote; these skills are GitHub-specific; add a github.com remote or track this work elsewhere." >&2
   exit 1
 fi

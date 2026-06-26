@@ -176,7 +176,7 @@ Before summarizing:
 Close the round with a single triage-summary comment **on the PR conversation**, opened with the same attribution line and the `**rebut**` marker:
 
 ```sh
-gh api "repos/$OWNER_REPO/issues/<pr>/comments" -F body=@/tmp/summary.md
+gh api "repos/{owner}/{repo}/issues/<pr>/comments" -F body=@/tmp/summary.md
 ```
 
 It carries the per-finding verdict table mapping finding → FIX / REFUTE / INTENTIONAL / MINOR → evidence: a commit SHA for a fix, a concrete reason for a refute. It also carries the fix commit SHAs and the `ci-status.sh` result from Step 5.5, reported as "CI is green" only when it truly is (`ci: green`, exit 0), or "no CI configured" when the PR has none (`ci: none`). It ends with a clear "these threads are answered and safe to Resolve."

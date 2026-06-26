@@ -26,7 +26,7 @@ if [ -z "$owner_repo" ] || [ -z "$me" ]; then
 fi
 
 findings=$(gh api --paginate "repos/$owner_repo/pulls/$pr/comments" \
-  --jq '.[] | select(.in_reply_to_id == null and (.user.login | endswith("[bot]"))) | "\(.id)\t\(.path):\(.line // "")\t\(.user.login)"')
+  --jq '.[] | select(.in_reply_to_id == null and ((.user.login // "") | endswith("[bot]"))) | "\(.id)\t\(.path):\(.line // "")\t\(.user.login)"')
 
 replied=$(gh api --paginate "repos/$owner_repo/pulls/$pr/comments" \
   --jq '.[] | select(.in_reply_to_id != null and .user.login == "'"$me"'") | .in_reply_to_id')
