@@ -19,9 +19,16 @@ if ! [[ "$pr" =~ ^[0-9]+$ ]]; then
 fi
 
 owner_repo=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null) || true
-me=$(gh api user --jq .login 2>/dev/null) || true
+# Triage identity: under a GitHub App token `gh api user` (a user-to-server
+# endpoint) returns 403, so accept the app's `slug[bot]` login via
+# REBUT_TRIAGE_LOGIN and fall back to the authenticated user only for a
+# personal token.
+me="${REBUT_TRIAGE_LOGIN:-}"
+if [ -z "$me" ]; then
+  me=$(gh api user --jq .login 2>/dev/null) || true
+fi
 if [ -z "$owner_repo" ] || [ -z "$me" ]; then
-  echo "verify-coverage: cannot resolve the GitHub repo or the authenticated account; run preflight first." >&2
+  echo "verify-coverage: cannot resolve the GitHub repo or the triage account; set REBUT_TRIAGE_LOGIN (e.g. the app's slug[bot]) under an App token, or run preflight for a personal token." >&2
   exit 2
 fi
 

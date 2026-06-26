@@ -1,0 +1,5 @@
+---
+"@next-friday/next-friday": patch
+---
+
+Close five system-level gaps found re-auditing the skills. The rebut coverage gate (`verify-coverage.sh`) now resolves the triage account from `REBUT_TRIAGE_LOGIN` and only falls back to `gh api user`, so it works under the GitHub App token the continuous-triage automation recommends — where `gh api user` 403s as a user-to-server endpoint; the automation template now passes that login. The implement fork-PR handoff no longer contradicts itself: on a fork the contributor owns and triages their own PR, while the maintainer keeps the label and merge steps. rebut's in-invocation fix-loop now stops and surfaces to the user after about three non-converging rounds instead of looping unbounded. The reviewer-settle step no longer over-trusts `gh pr checks --watch` for a review-only bot that registers no check run; it pauses and re-gathers regardless of check state. And the closure summary now states "every bot finding (N of N)," listing any human threads separately rather than folding them into the count.
