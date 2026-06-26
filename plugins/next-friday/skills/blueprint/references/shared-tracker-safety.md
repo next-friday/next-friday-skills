@@ -1,6 +1,6 @@
 # Shared-tracker safety
 
-The GitHub tracker — issues, pull requests, branches — is SHARED by parallel agents and people unless the user says otherwise; you are not its sole owner. These rules bind every outward write a skill makes to that tracker. Each skill states its own critical gate inline; this document is the canonical statement of the rules the skills share, so they cannot drift apart.
+The GitHub tracker (issues, pull requests, branches) is SHARED by parallel agents and people unless the user says otherwise; you are not its sole owner. These rules bind every outward write a skill makes to that tracker. Each skill states its own critical gate inline; this document is the canonical statement of the rules the skills share, so they cannot drift apart.
 
 ## Per-artifact authorization
 
@@ -12,7 +12,7 @@ Touch no issue, branch, or PR this session did not itself create, unless the use
 
 ## Precedence and scope
 
-Explicit user instructions, CLAUDE.md, and saved feedback outrank a skill. A scope the user set — local-only, draft-only, a specific issue — binds; a later broad "do it all" or "work in parallel" sets the goal, not the blast radius, and never lifts an earlier specific constraint, so reconfirm before widening. A saved "solo sandbox, skip the ceremony" note applies ONLY when the repo is confirmed solo; in a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts and ask.
+Explicit user instructions, CLAUDE.md, and saved feedback outrank a skill. A scope the user set (local-only, draft-only, a specific issue) binds; a later broad "do it all" or "work in parallel" sets the goal, not the blast radius, and never lifts an earlier specific constraint, so reconfirm before widening. A saved "solo sandbox, skip the ceremony" note applies ONLY when the repo is confirmed solo; in a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts and ask.
 
 ## When in doubt
 

@@ -132,7 +132,7 @@ These are `pnpm` scripts. Run them as `pnpm validate:skills`, and so on:
 - `validate:comments`: no prose code comments (repo-local).
 - `validate:versions`: each `plugin.json` version matches its `package.json`. It runs `sync-plugin-version.sh`, then fails on any diff.
 - `validate:scripts`: each skill's generated `scripts/` match the canonical source. It runs `sync-skill-scripts.sh`, then fails on any drift.
-- `validate:references`: each skill's shared `references/` copies match the canonical source at `plugins/next-friday/references/`. It runs `sync-skill-references.sh` — which scans each `SKILL.md` for `${CLAUDE_SKILL_DIR}/references/<name>.md` and copies in the matching canonical docs, additively, so a skill's own unique references are left untouched — then fails on any drift.
+- `validate:references`: each skill's shared `references/` copies match the canonical source at `plugins/next-friday/references/`. It runs `sync-skill-references.sh` (which scans each `SKILL.md` for `${CLAUDE_SKILL_DIR}/references/<name>.md` and copies in the matching canonical docs, additively, so a skill's own unique references are left untouched) then fails on any drift.
 - `validate:skills`: the name, description, reference, and hook contracts above.
 - `claude plugin validate .`: manifests and skill frontmatter.
 

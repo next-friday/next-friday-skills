@@ -18,7 +18,7 @@ blueprint
 ```
 
 <HARD-GATE>
-This skill writes to a SHARED GitHub tracker. Every outward write here — creating or editing an issue, posting a comment, applying a label or assignment — is bound by the rules in `${CLAUDE_SKILL_DIR}/references/shared-tracker-safety.md`: per-artifact authorization, no foreign artifacts, and precedence-and-scope. That document is the iron law for this skill's tracker writes; read it. In short: one explicit per-artifact "yes" per named artifact, never a batch; touch nothing this session did not create unless the user hands you its number; a design or draft approval is never a write authorization; explicit user scope and instructions outrank this skill; when in doubt, STOP and ask.
+This skill writes to a SHARED GitHub tracker. Every outward write here (creating or editing an issue, posting a comment, applying a label or assignment) is bound by the rules in `${CLAUDE_SKILL_DIR}/references/shared-tracker-safety.md`: per-artifact authorization, no foreign artifacts, and precedence-and-scope. That document is the iron law for this skill's tracker writes; read it. In short: one explicit per-artifact "yes" per named artifact, never a batch; touch nothing this session did not create unless the user hands you its number; a design or draft approval is never a write authorization; explicit user scope and instructions outrank this skill; when in doubt, STOP and ask.
 </HARD-GATE>
 
 <HARD-GATE>

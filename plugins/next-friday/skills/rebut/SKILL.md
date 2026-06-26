@@ -20,7 +20,7 @@ a `CRITICAL` can be a false positive, and a nit can hide a real bug.
 
 <HARD-GATE>
 Never apply a suggestion and never refute one without first verifying the finding against the
-CURRENT code — the verification discipline in `${CLAUDE_SKILL_DIR}/references/verification.md` binds this. Reproduce the claim, or run the gate, or read the convention, then decide.
+CURRENT code (the verification discipline in `${CLAUDE_SKILL_DIR}/references/verification.md` binds this). Reproduce the claim, or run the gate, or read the convention, then decide.
 </HARD-GATE>
 
 <HARD-GATE>
