@@ -1,5 +1,0 @@
----
-"@next-friday/next-friday": patch
----
-
-Deepen the implement and rebut skills from guardrail-bullets into real disciplines. `implement` now debugs a failing gate by method — reproduce, make it fail reliably, isolate one variable, form a falsifiable hypothesis, fix the root cause — instead of "don't flail," keeping the circuit-breaker after about three non-converging attempts. Both `implement` and `rebut` gain rationalization rows drawn from real observed failures: a clean lint count that a syntax error makes lie, a blanket autofixer that mangles a logic file, a non-fast-forward push that should be rebased not forced, a review bot's suggested diff that injected an unrelated path (apply the point, not the literal diff), a string-matching scanner that flags a command the prose only names to forbid, and a bot acknowledgement that is a round-end signal rather than a finding to reply to. `blueprint`'s plan guidance now states a task's Done as an observable behavior or contract that survives a file or line moving, and frames the file map as implementation guidance rather than the definition of done.
