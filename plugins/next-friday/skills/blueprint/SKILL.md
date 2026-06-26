@@ -33,6 +33,10 @@ Do NOT write any code, scaffold any project, or take any implementation action u
 Do NOT create or comment on any GitHub artifact until the design has CONVERGED: the user has approved it in chat and no open decisions remain. Recording is the product of an agreed design, not a scratchpad for a moving one. While requirements are still shifting, iterate in chat only. Recording early and then editing/deleting issues as the design changes is the failure this gate prevents.
 </HARD-GATE>
 
+<HARD-GATE>
+Do NOT resolve any solution decision — which option, which structure, which tool — until the idea's PREMISE is validated: that the thing should exist, what breaks without it, and what real problem it solves. Whether and why come before how. Resolving the solution tree on an unexamined premise is the wasted-work failure this gate prevents; stress-test the idea first (see the Checklist and "Stress-test the idea" below).
+</HARD-GATE>
+
 ## Language Rule
 
 All **artifacts** are English: issue title, body, comments, labels, spec files, code, commits, PR. The chat conversation with the user may be in another language, but anything that lands on GitHub or in the repo is English.
@@ -51,7 +55,7 @@ Every **logical change**, the smallest set of edits that ships and reviews as on
 
 State your tier call and let the user veto it. Misjudged? **Escalate, never downgrade mid-flight:** the moment a "trivial" change sprouts a real decision such as an interface, data shape, or user-visible trade-off, stop and run the Standard flow.
 
-The "too simple to need a design" excuse stays banned. Trivial work still gets its 2-4 sentences and an approval. "Simple" changes are where unexamined assumptions cause the most wasted work.
+The "too simple to need a design" excuse stays banned. Trivial work still gets a one-line premise check — is the problem real, is this the right fix? — plus its 2-4 sentences and an approval. "Simple" changes are where unexamined assumptions cause the most wasted work.
 
 ## Batch vs. split
 
@@ -61,11 +65,11 @@ Creating more than one GitHub artifact in a session — including an epic plus i
 
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order. **Trivial tier:** steps 2-4 collapse into the single short design message and step 5's separate temp-`.md` draft is skipped. The 2-4 sentence design posted in chat IS the draft; approving it is not a write authorization, so step 6's separate per-artifact outward-write yes is still required before recording to the issue. Steps 6, 7, and 8 still run, with step 7's self-review a quick re-read rather than a reviewer-subagent pass.
+You MUST create a task for each of these items and complete them in order. **Trivial tier:** step 2's stress-test shrinks to a one-line premise check (is the problem real, is this the right fix?), the rest of steps 2-4 collapse into the single short design message, and step 5's separate temp-`.md` draft is skipped. The 2-4 sentence design posted in chat IS the draft; approving it is not a write authorization, so step 6's separate per-artifact outward-write yes is still required before recording to the issue. Steps 6, 7, and 8 still run, with step 7's self-review a quick re-read rather than a reviewer-subagent pass.
 
 0. **Preflight `gh`:** run `"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"`; if it fails because gh is missing/unauthenticated or there is no GitHub remote, STOP and tell the user (see Preflight) before any other `gh` call
 1. **Explore project context and check for collisions:** read files, docs, recent commits, AND open issues, branches (`gh issue list`, `git branch -a`, and `gh issue develop <n> --list` only when the user named an existing issue to update), and open PRs for in-flight or overlapping work by other agents; surface any conflict to the user before designing or creating anything, and touch no artifact this session did not create
-2. **Interview the decision tree:** resolve root context first, then question relentlessly in dependency order, batching tightly-coupled questions each with a recommended answer, until shared understanding (see Interviewing below)
+2. **Stress-test the idea, then interview the decision tree:** first validate the PREMISE — should this exist, what breaks without it, the real problem under the stated solution — name the assumptions it rests on and verify the checkable ones, and force a genuine alternative including "don't build it / do less"; only then resolve the decision tree, root context first, in dependency order, with premise and branch-deciding questions taken one at a time and only tightly-coupled low-stakes detail batched with a recommended answer (see "Stress-test the idea" and "Interviewing" below)
 3. **Propose 2-3 approaches** with trade-offs and your recommendation
 4. **Present design** in sections scaled to their complexity, getting user approval after each section
 5. **Stage the draft for review:** write the converged design to a temp `.md` and link it for the user so it is forwardable to a reviewer; draft-content approval is NOT a write authorization (see Draft Review)
@@ -82,7 +86,16 @@ You MUST create a task for each of these items and complete them in order. **Tri
 - Check out the current project state first (files, docs, recent commits)
 - Before asking detailed questions, assess scope: if the request describes multiple independent subsystems, for example "build a platform with chat, file storage, billing, and analytics", flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
 - If the project is too large for a single design, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then blueprint the first sub-project through the normal flow. Each sub-project gets its own design → plan → implementation cycle.
-- For appropriately-scoped projects, interview the decision tree (below)
+- For appropriately-scoped projects, stress-test the idea (below), then interview the decision tree
+
+**Stress-test the idea (before resolving any solution decision):**
+
+Validate whether and why before how. Do not accept the request's framing as given.
+
+- **Premise.** Should this exist? What breaks if we do not build it? What is the real problem under the stated solution — is the request the fix, or a symptom of one? If the premise does not hold, say so now, not after a design is recorded.
+- **Assumptions.** Name the assumptions the request rests on and mark the falsifiable ones. Verify what is checkable against the codebase or a real source rather than carrying it as a guess.
+- **Divergence.** Before recommending, put at least two genuinely different approaches on the table, one of them "don't build it / do less", and steelman the strongest one you are about to reject. The first plausible idea is an anchor, not an answer.
+- **Genuine understanding.** Resolve premise and branch-deciding questions one at a time, so a "yes" is an informed yes, not deference to the default.
 
 **Interviewing: resolve the decision tree:**
 
@@ -90,8 +103,8 @@ Interview the user relentlessly about every aspect of the design until you reach
 
 - **Root context, resolve FIRST, before any tooling or structure question.** Three questions gate everything else, and getting them late forces redesigns. Resolve all three before asking about test runners, build tools, or file layout, because those decisions all depend on the answers: (1) **What is the real end goal / definition of done?** (2) **Does prior art exist?** Is this new, or does it replace, migrate, or continue an existing implementation in this repo or elsewhere; if so, explore it. (3) **What is the repo's nature and who consumes it:** standalone, open-source/public, internal, a library, a template? This determines portability, governance, and how self-contained the work must be.
 - **Dependency order.** After root context, resolve decisions that other decisions depend on first. Don't ask about button colors before you know whether there's a button.
-- **Batch tightly-coupled questions; keep branch-deciding ones separate.** Group questions that share the same dependency level into one message, each with its recommended answer, so the user can rubber-stamp the batch with one "yes". Keep a question separate when its answer re-routes the rest of the tree. Prefer multiple choice; open-ended is fine.
-- **Always recommend.** For every question, give your recommended answer and why. The user should be able to just say "yes" to your recommendation.
+- **One at a time for the questions that decide; batch only low-stakes detail.** A premise or branch-deciding question — one whose answer re-routes the rest of the tree — is asked alone and resolved for genuine understanding, never bundled for a one-"yes" rubber-stamp. Group only tightly-coupled, low-stakes detail that shares a dependency level into one message, each with its recommended answer. Prefer multiple choice; open-ended is fine.
+- **Always recommend, as a starting point.** For every question give your recommended answer and why. The recommendation is there for the user to interrogate, not a cue to agree; on a premise or branch-deciding question a "yes" should reflect understanding of the trade-off, not deference to the default.
 - **Explore, don't ask.** If a question can be answered by reading the codebase, recent commits, or existing issues, explore it yourself instead of asking. Only ask what the codebase can't tell you: intent, constraints, preferences, trade-offs.
 - **Know when to stop.** The tree is resolved when every branch that affects the design has an answer and no new branches are opening. Then move to approaches.
 
@@ -279,10 +292,11 @@ Once the plan is in the issue body, the execution phase of branch → code → f
 
 ## Rationalizations
 
-| Excuse                                                                                  | Reality                                                                                                                                                                 |
-| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| "The design is approved, so I'll create the issue now"                                  | Content approval is not a write authorization on a shared tracker. Present the exact artifact and get a separate per-artifact yes first.                                |
-| "They said 'do it all' or 'work in parallel', so I'll open the epic and all sub-issues" | A broad directive sets the goal, not the blast radius. One yes authorizes one named artifact, never a batch.                                                            |
-| "I'll just create the issue now so there is something to show"                          | Speculative creation pollutes a shared tracker. Capture the design locally or in chat; create a GitHub artifact only after an explicit per-artifact yes.                |
-| "The matching issue already exists, so I'll reuse and edit it"                          | Never auto-match by title or topic. Confirm the number with the user and that it is unclaimed and yours before editing; resemblance is not authorization.               |
-| "My saved memory says solo sandbox, skip the ceremony"                                  | Saved feedback outranks the skill only when the repo is confirmed solo. In a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts and ask. |
+| Excuse                                                                                  | Reality                                                                                                                                                                       |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "The design is approved, so I'll create the issue now"                                  | Content approval is not a write authorization on a shared tracker. Present the exact artifact and get a separate per-artifact yes first.                                      |
+| "They said 'do it all' or 'work in parallel', so I'll open the epic and all sub-issues" | A broad directive sets the goal, not the blast radius. One yes authorizes one named artifact, never a batch.                                                                  |
+| "I'll just create the issue now so there is something to show"                          | Speculative creation pollutes a shared tracker. Capture the design locally or in chat; create a GitHub artifact only after an explicit per-artifact yes.                      |
+| "The matching issue already exists, so I'll reuse and edit it"                          | Never auto-match by title or topic. Confirm the number with the user and that it is unclaimed and yours before editing; resemblance is not authorization.                     |
+| "My saved memory says solo sandbox, skip the ceremony"                                  | Saved feedback outranks the skill only when the repo is confirmed solo. In a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts and ask.       |
+| "The user said yes to the batch, so we're aligned"                                      | A yes to a rubber-stamp is not validated understanding; the premise can still be wrong. Take premise and branch-deciding questions one at a time, not as a batch to agree to. |
