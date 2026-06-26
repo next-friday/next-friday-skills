@@ -129,6 +129,8 @@ A failing gate blocks the PR. Fix the cause; do not skip, disable, or `--no-veri
 
 **A file the repo's own gates don't cover is still unverified, not verified-by-default.** For every file the diff touches that no repo gate exercises, run the cheapest language-appropriate loadability check before committing and read its result this turn. Use `bash -n` or `shellcheck` for shell, a parse for JSON and YAML, `tsc --noEmit` for TypeScript the build skips, and `py_compile` for Python. Only a whole gate the repo genuinely lacks, such as no test setup yet, is exempt; state that absence explicitly in the PR body instead of skipping silently.
 
+**Do not let a blanket autofixer rewrite a non-trivial logic file.** An automatic fixer, such as a linter's fix mode, can turn complex code into a syntax error and pad it with low-value boilerplate, for example empty doc blocks or stub annotations, that a later reviewer flags. Fix findings in logic files by hand, scoped to the finding; reserve autofix for purely mechanical, low-risk reformatting such as import ordering or quote style. And a lint or warning count is only trustworthy on code that parses: one syntax error can make the tool bail and under-report, hiding the file's other findings until the next run. So run the language's parse or compile check, per the loadability checks above, and confirm the file parses before you trust a count or call it clean.
+
 ### 4.5. Self-review the diff against the plan
 
 Before committing the final state, re-read the issue's plan and check your diff against it:
@@ -148,6 +150,8 @@ git push -u origin <branch>
 ```
 
 Stage only the files this issue touched. Never blanket `git add -A`/`git add .`, which sweeps in unrelated or untracked files such as build artifacts and temp bodies. On a fork, push to your fork's remote, not `origin` upstream.
+
+**Protect an unrelated dirty file from the commit hook before you commit.** A pre-commit hook that stashes unstaged changes while it runs, a common setup, can fail to restore a file whose type changed, such as a symlink-to-regular-file typechange, so an unrelated work-in-progress file is silently reverted on every commit and has to be restored by hand each time. Before the first commit of the loop, run `git status --short` and look for a dirty entry the issue does not touch, especially a typechange (the `T` status code) or symlink. If one exists, stash it once yourself with `git stash push -- <path>` and restore it with `git stash pop` after the final commit, or surface it to the user, rather than letting the hook eat it on every commit.
 
 **If the push is blocked** by a guard hook, branch protection, or a server-side rule: STOP. Do not retry, do not `--force`, do not `--no-verify`, do not reroute to another remote or rewrite the command to evade the block. The block is the user's policy, not an obstacle to engineer around. Report exactly what was refused and the command, leave the commits intact locally, and hand off to the user to complete or grant the push themselves. A blocked push is an expected stop, not a failure.
 

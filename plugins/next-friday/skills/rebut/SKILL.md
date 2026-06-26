@@ -75,6 +75,8 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 
 `gather-review.sh` prints a `REVIEWS` block holding each review's author, state, and body, and a `COMMENTS` block holding each inline comment's author, `path:line`, `id=<id>`, and body, via `gh`'s built-in `--jq`, so nothing is invented or dropped. List each finding with its author, `path:line`, comment `id` needed to reply, and body. Include the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot, recognizable by the `[bot]` login suffix shown in the gathered output, or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
 
+**Let the round settle before triaging.** Reviewers fire asynchronously: a second bot often lands its wave minutes after the first, so a gather run the instant the PR updates captures only the reviewers that have posted so far. After the first gather, wait a bounded interval (a minute or two) and re-run `gather-review.sh`; if it surfaced new findings, the round is still arriving, so wait and re-gather again. Begin triage only once a re-gather adds nothing new. This handles a multi-reviewer round as ONE triage pass instead of starting on reviewer A's findings while reviewer B is still mid-post, which forces a second full pass. The bound keeps this from waiting forever; the across-rounds automation in the last section is the durable answer for reviewers that post after the skill exits.
+
 ## Step 2: Verify each finding (the core of this skill)
 
 For each finding, answer two questions against the **current** code, not the bot's framing:
@@ -100,8 +102,12 @@ Change one thing at a time and re-verify. Do not batch.
 - Minimal change scoped to the finding. For a bug, write the failing test first, watch it fail,
   fix, watch it pass.
 - Run the repo's full gates. A red gate blocks the fix.
-- Commit and push under the **maintainer's** account, the same account that owns the PR and posts the replies. Capture the SHA for the
-  reply.
+- **Land the whole round in ONE commit and push, never one per finding.** Verify and fix each finding
+  one at a time as in Step 2, but stage every fix and commit them together, then push once, under the
+  **maintainer's** account, the same account that owns the PR and posts the replies. A per-finding
+  push turns one review cycle into several: each push re-runs CI and re-triggers every bot, so five
+  fixes become five CI runs and five re-review waves. One commit per round is one CI run and one
+  re-review wave. Capture that single SHA; every fix reply in Step 5 cites it.
 
 ## Step 5: Reply in each thread
 
