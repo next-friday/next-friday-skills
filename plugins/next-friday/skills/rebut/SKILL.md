@@ -14,7 +14,7 @@ evidence, and reply in each thread, marked as automated triage. The human still 
 
 This is the counterpart to human review, not a copy of it. AI reviewers such as CodeRabbit or Gemini
 Code Assist post **far more** findings, mix real bugs with false positives, and are **repo-blind**.
-They do not know your custom lint config, conventions, or tooling, so they flag
+They do not know your repo's local config, conventions, or tooling, so they flag
 correct-for-your-repo patterns as bugs, confidently. **A bot's severity is not its correctness**:
 a `CRITICAL` can be a false positive, and a nit can hide a real bug.
 
@@ -40,11 +40,11 @@ never asserted.
 
 ## Why AI reviewers get their own triage
 
-- **Repo-blind.** The bot does not load your `eslint.config`, your `tsconfig`, or your house
-  rules. It will flag a pattern your own tooling REQUIRES. Real example: a reviewer marked
-  `meta.defaultOptions` as CRITICAL "wrong", but the repo's `require-meta-default-options` lint
-  forces it. Applying the suggestion would have broken the build. Blind-apply is as dangerous as
-  blind-dismiss.
+- **Repo-blind.** The bot does not load your repo's local config — a linter, formatter, or
+  type-checker config, whatever your stack uses — or your house rules. It will flag a pattern your
+  own tooling REQUIRES. Real example (an ESLint repo): a reviewer marked `meta.defaultOptions` as
+  CRITICAL "wrong", but the repo's `require-meta-default-options` lint rule forces it. Applying the
+  suggestion would have broken that build. Blind-apply is as dangerous as blind-dismiss.
 - **High false-positive rate.** Many findings are speculative or style-only. Some are real bugs
   the human missed. The job is to separate them with evidence, not vibes.
 - **Confidently wrong.** Severity labels are heuristics. Verify a `CRITICAL` the same as a nit.
@@ -75,14 +75,16 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 
 `gather-review.sh` prints a `REVIEWS` block holding each review's author, state, and body, and a `COMMENTS` block holding each inline comment's author, `path:line`, `id=<id>`, and body, via `gh`'s built-in `--jq`, so nothing is invented or dropped. List each finding with its author, `path:line`, comment `id` needed to reply, and body. Include the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot, recognizable by the `[bot]` login suffix shown in the gathered output, or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
 
+**Let the round settle before triaging.** Reviewers fire asynchronously: a second bot often lands its wave minutes after the first, so a gather run the instant the PR updates captures only the reviewers that have posted so far. After the first gather, wait a bounded interval (a minute or two) and re-run `gather-review.sh`; if it surfaced new findings, the round is still arriving, so wait and re-gather again. Begin triage only once a re-gather adds nothing new. This handles a multi-reviewer round as ONE triage pass instead of starting on reviewer A's findings while reviewer B is still mid-post, which forces a second full pass. The bound keeps this from waiting forever; the across-rounds automation in the last section is the durable answer for reviewers that post after the skill exits.
+
 ## Step 2: Verify each finding (the core of this skill)
 
 For each finding, answer two questions against the **current** code, not the bot's framing:
 
 1. **Does the problem reproduce?** Open the file at the line. Trace the logic. Construct the input
    the bot describes and check the actual behavior. If it is a bug, it must be demonstrable.
-2. **Is the suggestion correct for THIS repo?** Run the relevant gate (lint, type-check, test). Check
-   the documented convention. A fix that passes the bot but fails a repo gate is wrong here.
+2. **Is the suggestion correct for THIS repo?** Run the relevant gate the repo defines (its linter,
+   type-checker, or tests, whichever exist). Check the documented convention. A fix that passes the bot but fails a repo gate is wrong here.
 
 Change one thing at a time and re-verify. Do not batch.
 
@@ -100,8 +102,12 @@ Change one thing at a time and re-verify. Do not batch.
 - Minimal change scoped to the finding. For a bug, write the failing test first, watch it fail,
   fix, watch it pass.
 - Run the repo's full gates. A red gate blocks the fix.
-- Commit and push under the **maintainer's** account, the same account that owns the PR and posts the replies. Capture the SHA for the
-  reply.
+- **Land the whole round in ONE commit and push, never one per finding.** Verify and fix each finding
+  one at a time as in Step 2, but stage every fix and commit them together, then push once, under the
+  **maintainer's** account, the same account that owns the PR and posts the replies. A per-finding
+  push turns one review cycle into several: each push re-runs CI and re-triggers every bot, so five
+  fixes become five CI runs and five re-review waves. One commit per round is one CI run and one
+  re-review wave. Capture that single SHA; every fix reply in Step 5 cites it.
 
 ## Step 5: Reply in each thread
 

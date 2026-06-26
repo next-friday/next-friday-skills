@@ -14,7 +14,7 @@ Take an approved GitHub issue and deliver it: branch → code → gates → PR �
 issue (approved design + plan)
   └→ branch (from the issue)
        └→ write code (task by task, TDD)
-            └→ run FULL gates (lint, types, tests, build)
+            └→ run FULL gates (whichever the repo has: lint, types, tests, build)
                  └→ commit & push
                       └→ open PR from .github template (Closes #issue)
                            └→ verify CI green (gh pr checks)
@@ -56,7 +56,7 @@ Read the actual file and fill every section. If a template contains a checklist,
 
 ### 1. Identify the issue and its plan
 
-**Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the `--filter` package, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop --list`, `pnpm-workspace.yaml`/`turbo.json`, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
+**Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the owning package or target, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop --list`, the repo's workspace or monorepo config in whatever form it takes, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
 
 ```sh
 "${CLAUDE_SKILL_DIR}/scripts/preflight.sh"
@@ -112,12 +112,12 @@ Work the plan's tasks in dependency order, committing frequently and keeping cha
 
 ### 4. Run the FULL gates before committing the final state
 
-Discover the repo's gates from where the changed code lives, not just the repo root, and don't assume. In a monorepo the lint/type/test/build scripts often live in the sub-package that owns the files this issue touched, or in a workspace runner such as `turbo.json`, `nx.json`, or `pnpm-workspace.yaml`, not the root `package.json`. Identify the owning package and run its gates through the repo's task runner (e.g. `turbo run lint --filter=<pkg>`, `pnpm --filter <pkg> test`, or the package's local scripts). A root-level script may be absent, run nothing for that package, or falsely pass, so confirm the gate actually exercised your changes before trusting a green result. Run all gates that apply and make them pass:
+Discover the repo's gates from where the changed code lives, not just the repo root, and don't assume. In a monorepo the gate scripts often live in the sub-package that owns the files this issue touched, or in a workspace or monorepo config, not the repo's root manifest. That config takes many forms, such as `turbo.json` or `pnpm-workspace.yaml` for Node, a Cargo or Go workspace, or a Gradle or Bazel build. Identify the owning package and run its gates through the repo's task runner, whatever it is (e.g. `turbo run lint --filter=<pkg>` or `pnpm --filter <pkg> test` for Node, `cargo test -p <pkg>`, `go test ./...`, a `make` or `just` target, or the package's local scripts). A root-level script may be absent, run nothing for that package, or falsely pass, so confirm the gate actually exercised your changes before trusting a green result. Run all gates that apply and make them pass:
 
-- Lint
-- Type-check
+- Lint, if the repo has a linter
+- Type-check, if the language is typed
 - Tests, running a single test while iterating and the full suite before the PR
-- Build
+- Build, if the project has a build step
 
 A failing gate blocks the PR. Fix the cause; do not skip, disable, or `--no-verify` around a gate to make it pass.
 
@@ -128,6 +128,8 @@ A failing gate blocks the PR. Fix the cause; do not skip, disable, or `--no-veri
 - **After 3 failed fixes, STOP.** Repeated failure, especially surfacing somewhere new each time, means the approach or the plan is wrong, not that fix #4 is around the corner. Step back, question the design, and raise it with the user instead of guessing again.
 
 **A file the repo's own gates don't cover is still unverified, not verified-by-default.** For every file the diff touches that no repo gate exercises, run the cheapest language-appropriate loadability check before committing and read its result this turn. Use `bash -n` or `shellcheck` for shell, a parse for JSON and YAML, `tsc --noEmit` for TypeScript the build skips, and `py_compile` for Python. Only a whole gate the repo genuinely lacks, such as no test setup yet, is exempt; state that absence explicitly in the PR body instead of skipping silently.
+
+**Do not let a blanket autofixer rewrite a non-trivial logic file.** An automatic fixer, such as a linter's fix mode, can turn complex code into a syntax error and pad it with low-value boilerplate, for example empty doc blocks or stub annotations, that a later reviewer flags. Fix findings in logic files by hand, scoped to the finding; reserve autofix for purely mechanical, low-risk reformatting such as import ordering or quote style. And a lint or warning count is only trustworthy on code that parses: one syntax error can make the tool bail and under-report, hiding the file's other findings until the next run. So run the language's parse or compile check, per the loadability checks above, and confirm the file parses before you trust a count or call it clean.
 
 ### 4.5. Self-review the diff against the plan
 
@@ -149,6 +151,8 @@ git push -u origin <branch>
 
 Stage only the files this issue touched. Never blanket `git add -A`/`git add .`, which sweeps in unrelated or untracked files such as build artifacts and temp bodies. On a fork, push to your fork's remote, not `origin` upstream.
 
+**Protect an unrelated dirty file from the commit hook before you commit.** A pre-commit hook that stashes unstaged changes while it runs, a common setup, can fail to restore a file whose type changed, such as a symlink-to-regular-file typechange, so an unrelated work-in-progress file is silently reverted on every commit and has to be restored by hand each time. Before the first commit of the loop, run `git status --short` and look for a dirty entry the issue does not touch, especially a typechange (the `T` status code) or symlink. If one exists, stash it once yourself with `git stash push -- <path>` and restore it with `git stash pop` after the final commit — and before any early exit, so a failed gate or aborted loop does not strand the change in the stash — or surface it to the user, rather than letting the hook eat it on every commit.
+
 **If the push is blocked** by a guard hook, branch protection, or a server-side rule: STOP. Do not retry, do not `--force`, do not `--no-verify`, do not reroute to another remote or rewrite the command to evade the block. The block is the user's policy, not an obstacle to engineer around. Report exactly what was refused and the command, leave the commits intact locally, and hand off to the user to complete or grant the push themselves. A blocked push is an expected stop, not a failure.
 
 ### 6. Open the PR from the repo's template
@@ -160,7 +164,7 @@ gh pr create --head <branch> --title "<English title per the repo's title conven
 ```
 
 - **Always pass `--head <branch>` explicitly.** Without it, `gh` infers the currently checked-out branch, so in a session with more than one active branch the PR silently attaches to the wrong one. **From a fork**, qualify it as `--head <fork-owner>:<branch>` so `gh` opens the PR cross-repo into the upstream.
-- **Title follows the repo's enforced convention.** Check for a pr-title validation workflow and the repo's commitlint config; discover the rule by reading the repo, never assume another repo's scheme. A common rule set is conventional `type(scope): subject` validated by commitlint, and **no `#N` in the title**, because squash-merge appends `(#PR)` and an issue ref in the title duplicates on the default branch. Issue refs go in the body only.
+- **Title follows the repo's enforced convention.** Check for a pr-title validation workflow and any commit-message lint config the repo has (e.g. commitlint); discover the rule by reading the repo, never assume another repo's scheme. A common rule set is conventional `type(scope): subject` enforced by such a linter, and **no `#N` in the title**, because squash-merge appends `(#PR)` and an issue ref in the title duplicates on the default branch. Issue refs go in the body only.
 - **If PR creation is blocked** by a hook or policy: STOP, exactly as with a blocked push. Do not force or reroute. Report what was refused and hand off to the user to open the PR.
 - Body MUST include `Closes #<n>` so merging closes the issue.
 - Labels: only apply ones that already exist (check `gh label list`). Reviewers: determine from CODEOWNERS or ask the user, never guess. **On a fork you lack write access**, so skip the label/reviewer steps; the maintainer applies them.

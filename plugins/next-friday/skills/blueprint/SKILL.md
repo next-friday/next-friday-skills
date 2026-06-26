@@ -100,6 +100,7 @@ Interview the user relentlessly about every aspect of the design until you reach
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
+- **Settle the approach before any heavy work is delegated.** For a large task, the approach-level choices, such as using a library versus hand-writing it and how much latitude the implementer has over the architecture, must be decided here, in the design, not discovered mid-grind. Delegating the grind to a subagent before these are settled wastes whole runs: the work is stopped and redirected once the direction turns out wrong. Resolve "library or hand-rolled?" and "may the structure change?" with the user now, then delegate against a fixed approach.
 
 **Presenting the design:**
 
@@ -171,7 +172,7 @@ Run `"${CLAUDE_SKILL_DIR}/scripts/preflight.sh"` first; it verifies `gh` is auth
 
 ### Title convention: discover, don't invent
 
-Before titling the issue, check whether the repo enforces a convention: look for an issue-title or PR-title validation workflow in `.github/workflows/`, a commitlint config, or a documented rule in `CONTRIBUTING`. If a conventional-commit-style scheme is enforced, commonly `<type>(<scope>): <lowercase description>` with a defined type enum, issue titles MUST follow it. Otherwise mirror the repo's existing commit convention from `git log`; a plain descriptive English title is the last resort. Discover the convention by reading the repo; never assume one repo's scheme applies to another.
+Before titling the issue, check whether the repo enforces a convention: look for an issue-title or PR-title validation workflow in `.github/workflows/`, a commit-message lint config (e.g. commitlint), or a documented rule in `CONTRIBUTING`. If a conventional-commit-style scheme is enforced, commonly `<type>(<scope>): <lowercase description>` with a defined type enum, issue titles MUST follow it. Otherwise mirror the repo's existing commit convention from `git log`; a plain descriptive English title is the last resort. Discover the convention by reading the repo; never assume one repo's scheme applies to another.
 
 ### Create vs. update: ASK, don't guess
 
@@ -237,6 +238,8 @@ Write the plan at **task altitude**: state what each task does, which files it t
 - a line naming the **implement** skill as the executor, with `- [ ]` checkbox steps.
 
 **File map first.** Before decomposing, list every file to create or modify with its single responsibility. Files that change together live together; split by responsibility, not by technical layer.
+
+When a task renames or moves a file, the file map must also list whatever still references the old path. A rename leaves stale references behind, in build, lint, type-check, test, and CI config, in import or include statements, and in docs, that pass locally and surface only later, often at push or in CI, one gate at a time. So while planning, search the repo for the old path (e.g. `git grep`, since git is the one guaranteed dependency) and add every file that still holds it to the rename task, so the references move in the same change rather than being discovered gate by gate.
 
 **Right-size each task.** A task is the smallest unit that carries its own test cycle and is worth a fresh reviewer's gate. Fold setup, config, scaffolding, and docs into the task whose deliverable needs them; split only where a reviewer could reject one task while approving its neighbor.
 
