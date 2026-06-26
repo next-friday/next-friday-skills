@@ -56,7 +56,7 @@ Read the actual file and fill every section. If a template contains a checklist,
 
 ### 1. Identify the issue and its plan
 
-**Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the owning package or target, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop --list`, the repo's workspace or monorepo config in whatever form it takes, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
+**Target gate (shared tracker).** First fix `<n>`: it must be a number the user EXPLICITLY named this session. No number given (a bare `/implement`)? STOP, run `gh issue list`, and ask which one; never auto-select. For every command whose target is inferable (`gh issue view <n>`, `--head <branch>`, the owning package or target, the base branch, the template path): IDENTIFY the target, DERIVE it from an observable source (the user-named `<n>`, `gh issue develop <n> --list`, the repo's workspace or monorepo config in whatever form it takes, `git rev-parse --abbrev-ref HEAD`, the actual `.github/` file), ECHO it back, then run. An un-derived target is inference, so STOP.
 
 ```sh
 "${CLAUDE_SKILL_DIR}/scripts/preflight.sh"
