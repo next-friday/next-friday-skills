@@ -18,11 +18,7 @@ blueprint
 ```
 
 <HARD-GATE>
-Assume the GitHub tracker is SHARED by parallel agents and people unless the user says otherwise; you are not its sole owner. Two rules bind every step below. (1) Create or mutate no issue, PR, or branch — and post no comment, label, or assignment — without an explicit, per-artifact yes naming THAT artifact in this session; one yes authorizes one named artifact, never a batch, and a design approval is NOT a write authorization. (2) Touch no issue, branch, or PR this session did not itself create unless the user hands you its number; same-account authorship does not make it yours, and title or topic resemblance is not authorization. When in doubt about ownership or whether a write was authorized, STOP and ask.
-</HARD-GATE>
-
-<HARD-GATE>
-Explicit user instructions, CLAUDE.md, and saved feedback always outrank this skill. If the user scoped the session (local-only, draft-only, a specific issue), that scope binds and a later broad "do it all" never lifts it; reconfirm before widening. A saved "solo sandbox, skip the ceremony" note applies ONLY when the repo is confirmed solo; in a tracker that may be shared, default to confirm-and-do-not-touch-foreign-artifacts.
+This skill writes to a SHARED GitHub tracker. Every outward write here (creating or editing an issue, posting a comment, applying a label or assignment) is bound by the rules in `${CLAUDE_SKILL_DIR}/references/shared-tracker-safety.md`: per-artifact authorization, no foreign artifacts, and precedence-and-scope. That document is the iron law for this skill's tracker writes; read it. In short: one explicit per-artifact "yes" per named artifact, never a batch; touch nothing this session did not create unless the user hands you its number; a design or draft approval is never a write authorization; explicit user scope and instructions outrank this skill; when in doubt, STOP and ask.
 </HARD-GATE>
 
 <HARD-GATE>

@@ -14,6 +14,7 @@
     "validate:markdown": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
     "validate:comments": "bash scripts/check-no-comments.sh",
     "validate:scripts": "bash scripts/sync-skill-scripts.sh && ! git status --porcelain | grep -qE 'plugins/.*/skills/.*/scripts/'",
+    "validate:references": "bash scripts/sync-skill-references.sh && ! git status --porcelain | grep -qE 'plugins/.*/skills/.*/references/'",
     "validate:skills": "bash scripts/validate-skills.sh"
   },
   "devDependencies": {
