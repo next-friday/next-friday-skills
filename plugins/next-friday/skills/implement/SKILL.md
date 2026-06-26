@@ -123,10 +123,10 @@ A failing gate blocks the PR. Fix the cause; do not skip, disable, or `--no-veri
 
 **When a gate, or later a CI check, fails, debug by method — do not guess-and-retry:**
 
-- **Reproduce it.** Read the actual error and run the failing gate yourself; do not work from a remembered or assumed failure. A bug you cannot reproduce on command, you cannot prove you fixed.
+- **Reproduce it.** Read the actual error and run the failing gate yourself; do not work from a remembered or assumed failure. If you cannot reproduce a bug on command, you cannot prove you fixed it.
 - **Make it fail reliably.** The feedback loop is the real work: get to a single command that fails now and will pass once fixed. Until you have it, you are guessing.
 - **Isolate by one variable.** Change ONE thing and re-run; a burst of simultaneous changes hides which one mattered. Bisect the diff or the input to localize the cause.
-- **Form one falsifiable hypothesis before touching code:** "the cause is X because Y", then test that prediction. A hypothesis you cannot state is a vibe — sharpen it or discard it.
+- **Form one falsifiable hypothesis before touching code:** "the cause is X because Y", and then test that prediction. A hypothesis you cannot state is a vibe — sharpen it or discard it.
 - **Fix the root cause, not the symptom.** A guard added only where the error surfaced leaves every sibling path broken; fix it where all paths route through.
 - **After ~3 non-converging attempts, STOP.** Repeated failure, especially surfacing somewhere new each time, means the approach or the plan is wrong, not that fix #4 is around the corner. Step back, question the design, and raise it with the user instead of guessing again.
 
