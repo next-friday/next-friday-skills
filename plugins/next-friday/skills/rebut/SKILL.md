@@ -51,13 +51,13 @@ never asserted.
 
 ## When the reviewer is a human
 
-The verification core holds for **any** reviewer: the two HARD-GATEs above, never apply or refute without checking the current code, and back every reply with evidence. The rest of this skill is tuned for bots, and a human reviewer inverts every bot trait: they usually know the repo, post fewer and higher-signal findings, and have a face that a blunt refutation can threaten. So when the reviewer is human:
+The pipeline is the same for **every** reviewer, bot or human: verify against the current code → fix or push back with evidence → reply in-thread under the attribution line → prove coverage. A human contributor or reviewer is part of the triage loop too: when a person asks for a change, fix it and reply, with the same rigor and the same audit trail the human gate reads at merge. Only the **tone** changes, because a human knows the repo, posts fewer and higher-signal findings, and has a face that a blunt refutation can threaten. So when the reviewer is human:
 
 - **Drop the bot framing.** Do not treat their review as repo-blind, high-false-positive noise; it usually is not.
-- **Collaborate, do not refute.** Verify, then fix what is right and push back on what is wrong with technical reasoning. Never performative agreement, never a curt "false positive" aimed at a colleague.
-- **Do not auto-post as them.** Draft the reply and hand it to the maintainer to send in their own voice. The automated-triage attribution line fits a bot-triage reply, not a peer reply. Reply autonomously only to bot threads.
+- **Collaborate, do not curtly refute.** Verify, then fix what is right and push back on what is wrong with technical reasoning. Never performative agreement, never a curt "false positive" aimed at a colleague; state the reason in a non-curt, technically-reasoned tone.
+- **Post the reply yourself, with the attribution line.** You triage human threads autonomously, same as bot threads: post through the triage account, opened with the attribution line so the reader sees an automated triage and not the maintainer's own peer review. The line that disconnects the comment from the maintainer is exactly what makes auto-posting to a human thread safe. Coverage counts human threads too (Step 5.5), so a human finding left unanswered keeps the round open.
 
-The rest of this skill, meaning the steps, the attribution marker, and the auto-reply, assumes a bot reviewer. Apply it as written to bots; adapt per the three points above for humans.
+The steps below apply to bots and humans alike; the attribution marker and auto-reply are used for both. The only per-reviewer adaptation is the tone above.
 
 ## Preflight
 
@@ -73,7 +73,7 @@ The rest of this skill, meaning the steps, the attribution marker, and the auto-
 "${CLAUDE_SKILL_DIR}/scripts/gather-review.sh" <pr>
 ```
 
-`gather-review.sh` prints a `REVIEWS` block holding each review's author, state, and body, and a `COMMENTS` block holding each inline comment's author, `path:line`, `id=<id>`, and body, via `gh`'s built-in `--jq`, so nothing is invented or dropped. List each finding with its author, `path:line`, comment `id` needed to reply, and body. Include the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot, recognizable by the `[bot]` login suffix shown in the gathered output, or a human: bot threads follow Steps 4-6 as written, human threads follow "When the reviewer is a human" above.
+`gather-review.sh` prints a `REVIEWS` block holding each review's author, state, and body, and a `COMMENTS` block holding each inline comment's author, `path:line`, `id=<id>`, and body, via `gh`'s built-in `--jq`, so nothing is invented or dropped. List each finding with its author, `path:line`, comment `id` needed to reply, and body. Include the top-level review summaries and every inline comment. Miss none. Tag each thread's author as a bot, recognizable by the `[bot]` login suffix shown in the gathered output, or a human: both follow Steps 4-6, and a human thread additionally takes the tone adjustment in "When the reviewer is a human" above.
 
 **Let the round settle before triaging.** Reviewers fire asynchronously: a second bot often lands its wave minutes after the first, so a gather run the instant the PR updates captures only the reviewers that have posted so far. After the first gather, let the round settle with `gh pr checks <pr> --watch || true`: it blocks until the PR's checks finish and behaves the same interactively and headless, and that is the window asynchronous reviewers post in (the `|| true` keeps a checkless PR's non-zero exit from reading as a failure). Then re-run `gather-review.sh`; if it surfaced new findings, the round is still arriving, so watch and re-gather again. (If the PR has no checks, `--watch` returns at once; and a review-only bot may register no check run at all, so in both cases pause briefly and re-gather regardless of check state. The across-rounds automation below is the real backstop for a reviewer that posts after this settles.) Begin triage only once a re-gather adds nothing new. This handles a multi-reviewer round as ONE triage pass instead of starting on reviewer A's findings while reviewer B is still mid-post, which forces a second full pass. The bound keeps this from waiting forever; the across-rounds automation in the last section is the durable answer for reviewers that post after the skill exits.
 
@@ -155,13 +155,13 @@ this script exists to prevent. One finding, one `post-reply.sh` call, in sequenc
 
 **Reply-only, never Resolve.** Post replies through the API; never click "Resolve conversation". The green Resolve button is the human reviewer's, and it is how they *verify* this skill's work: they read each thread, confirm a reply is present, confirm the summary comment exists, and only then resolve. If the skill resolves, the human cannot tell whether they or the agent closed the thread, the exact confusion that makes them re-check or re-run the triage. This skill's entire output is replies plus one summary comment; the Resolve button stays theirs.
 
-**Leave no thread blank.** Every finding gathered in Step 1 gets a reply: a `FIX` with its SHA, or a `REFUTE` / `INTENTIONAL` / `MINOR` with its reason. A bot comment with no response is indistinguishable from un-triaged work: a human reviewer cannot tell whether the skill ran, so they re-invoke it and the round loops. Silence is never a verdict. Disagreeing with a finding still requires a stated reason, never an empty thread.
+**Leave no thread blank.** Every finding gathered in Step 1 gets a reply: a `FIX` with its SHA, or a `REFUTE` / `INTENTIONAL` / `MINOR` with its reason. A finding with no response, from a bot or a human, is indistinguishable from un-triaged work: a reviewer cannot tell whether the skill ran, so they re-invoke it and the round loops. Silence is never a verdict. Disagreeing with a finding still requires a stated reason, never an empty thread.
 
 ## Step 5.5: Assert coverage, re-verify CI, then catch the round your fix-push provoked
 
 Before summarizing:
 
-- **Assert coverage (always).** After posting, re-query the PR and confirm every bot finding got a reply from the triage account:
+- **Assert coverage (always).** After posting, re-query the PR and confirm every finding, bot or human, got a reply from the triage account:
 
   ```sh
   "${CLAUDE_SKILL_DIR}/scripts/verify-coverage.sh" <pr>
@@ -181,7 +181,7 @@ gh api "repos/{owner}/{repo}/issues/<pr>/comments" -F body=@/tmp/summary.md
 
 It carries the per-finding verdict table mapping finding → FIX / REFUTE / INTENTIONAL / MINOR → evidence: a commit SHA for a fix, a concrete reason for a refute. It also carries the fix commit SHAs and the `ci-status.sh` result from Step 5.5, reported as "CI is green" only when it truly is (`ci: green`, exit 0), or "no CI configured" when the PR has none (`ci: none`). It ends with a clear "these threads are answered and safe to Resolve."
 
-State the coverage explicitly, **"replied to every bot finding (N of N)"**, taken from the `answered N / N` line that `verify-coverage.sh` printed in Step 5.5, never a count done by hand; that script counts bot threads only, so when a human also reviewed, list their drafted-and-pending threads separately rather than folding them into the N. Post this comment only once that script has reported full coverage; if it still shows any `MISSING`, the round is not done and there is nothing to summarize yet. So the human's verification is a glance, not an audit. The human reviewer's job is exactly this check: every AI-reviewer finding has a reply that fixes, refutes, or defers it with a reason, and the summary comment exists; once they confirm it, they Resolve.
+State the coverage explicitly, **"replied to every finding (N of N)"**, taken from the `answered N / N` line that `verify-coverage.sh` printed in Step 5.5, never a count done by hand; that script counts every top-level inline finding, bot and human alike (excluding only the triage account's own comments), so the N already folds in any human reviewer's threads. Post this comment only once that script has reported full coverage; if it still shows any `MISSING`, the round is not done and there is nothing to summarize yet. So the human's verification is a glance, not an audit. The human reviewer's job is exactly this check: every finding has a reply that fixes, refutes, or defers it with a reason, and the summary comment exists; once they confirm it, they Resolve.
 
 This posted comment is the closure artifact. It covers the **review summaries**, the top-level review bodies that are not inline threads you can reply to, and it gives a human the visible proof the round was triaged, so they do not re-invoke the skill and restart the loop. After posting it, hand the same table back to the caller.
 
