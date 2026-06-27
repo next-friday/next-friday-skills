@@ -7,9 +7,10 @@
 #   0  every finding has a reply (N == M, including M == 0)
 #   1  at least one finding is unanswered
 #   2  bad argument, or the repo/account could not be resolved
-# A finding is any top-level inline comment (no in_reply_to_id), regardless of
-# author; a reply is a comment whose in_reply_to_id points at a finding and whose
-# author IS the triage account. Uses gh's built-in --jq, no system jq required.
+# A finding is any top-level inline comment (no in_reply_to_id) from any reviewer
+# except the triage account's own comments (the replier cannot be a findee); a
+# reply is a comment whose in_reply_to_id points at a finding and whose author IS
+# the triage account. Uses gh's built-in --jq, no system jq required.
 set -euo pipefail
 
 pr="${1:-}"
